@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK-0001",
+  "project_id": "example_project",
+  "required_capabilities": ["code_execution"],
+  "assigned_agent": "agent-alpha",
+  "depends_on": [],
+  "input_refs": [
+    "source_of_truth.md"
+  ],
+  "risk_level": "low",
+  "timeout_sec": 1800,
+  "status": "pending"
+}

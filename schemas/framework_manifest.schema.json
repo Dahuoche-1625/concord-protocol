@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/framework_manifest.json",
+  "title": "FrameworkManifest",
+  "description": "Project-level declaration for adopting the framework layer.",
+  "type": "object",
+  "required": ["framework_version", "protocol_version", "project_id", "default_deny", "guard_mode", "protected_scope"],
+  "properties": {
+    "framework_version": {
+      "type": "string",
+      "description": "Framework version adopted by this project (e.g., '0.1').",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "protocol_version": {
+      "type": "string",
+      "description": "Protocol version this framework is based on.",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Unique project identifier.",
+      "minLength": 1
+    },
+    "identity_mode": {
+      "type": "string",
+      "enum": ["file_bus_v1", "signature", "token"],
+      "default": "file_bus_v1"
+    },
+    "identity_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "default_deny": {
+      "type": "boolean",
+      "description": "If true, any operation not explicitly allowed in AgentBoundary is denied.",
+      "const": true
+    },
+    "guard_mode": {
+      "type": "string",
+      "enum": ["verify_only"],
+      "description": "V0.1 fixed to verify_only."
+    },
+    "protected_scope": {
+      "type": "array",
+      "description": "Paths monitored by RuntimeGuard. workspace_manifest includes these, does not exclude them.",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "guard_workspace_excludes": {
+      "type": "array",
+      "description": "Directories excluded from workspace_manifest scanning. Directory-level only, no file extension wildcards.",
+      "items": { "type": "string" }
+    },
+    "audit_log": {
+      "type": "boolean",
+      "default": true
+    },
+    "runtime_adapter": {
+      "type": "string",
+      "default": "file_bus_v1"
+    }
+  }
+}

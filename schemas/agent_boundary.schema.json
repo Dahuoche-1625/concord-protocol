@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/agent_boundary.json",
+  "title": "AgentBoundary",
+  "description": "Whitelist-mode permission boundary for an agent. Any operation not in allowed_actions is denied.",
+  "type": "object",
+  "required": ["agent_id", "allowed_actions", "denied_actions", "result_scope", "forbidden_read"],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowed_actions": {
+      "type": "array",
+      "description": "Explicitly allowed actions. Default deny applies to everything else.",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "denied_actions": {
+      "type": "array",
+      "description": "Explicitly denied actions. approve_own_output must be in this list.",
+      "items": { "type": "string" },
+      "contains": { "const": "approve_own_output" }
+    },
+    "result_scope": {
+      "type": "array",
+      "description": "Paths where agent may write result.json.",
+      "items": { "type": "string" }
+    },
+    "artifact_scope": {
+      "type": "array",
+      "description": "Paths where agent may write artifacts.",
+      "items": { "type": "string" }
+    },
+    "read_scope": {
+      "type": "array",
+      "description": "Paths agent may read.",
+      "items": { "type": "string" }
+    },
+    "read_disclosure_only": {
+      "type": "boolean",
+      "description": "V0.1 fixed to true — RuntimeGuard checks source_refs against forbidden_read, does not intercept actual reads.",
+      "const": true
+    },
+    "forbidden_read": {
+      "type": "array",
+      "description": "Paths agent must not read. Highest priority — overrides read_scope.",
+      "items": { "type": "string" }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["standard"],
+      "default": "standard"
+    },
+    "max_parallel_tasks": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task_id": "TASK-0001",
+  "status": "done",
+  "summary": "Example task completed successfully. Output written to agents/agent-alpha/results/TASK-0001/output.txt.",
+  "output_refs": [
+    "agents/agent-alpha/results/TASK-0001/output.txt"
+  ],
+  "source_refs": [
+    "source_of_truth.md",
+    "TASKS/active/TASK-0001/task.json"
+  ],
+  "verification_refs": [],
+  "generated_at": "2026-01-01T00:05:00Z"
+}

@@ -1,0 +1,11 @@
+{
+  "agent_id": "agent-beta",
+  "display_name": "Agent Beta",
+  "identity_proof": {
+    "mode": "file_bus_v1",
+    "public_key_ref": null
+  },
+  "registered_at": "2026-01-01T00:00:00Z",
+  "registered_by": "human",
+  "status": "active"
+}

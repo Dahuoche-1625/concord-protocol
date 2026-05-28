@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/audit_log.json",
+  "title": "AuditLog",
+  "description": "Structured, append-only, immutable audit trail record.",
+  "type": "object",
+  "required": ["event_id", "timestamp", "project_id", "task_id", "agent_id", "event_type", "event_data", "source_refs"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^AUDIT-\\d+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["task_start", "task_complete", "boundary_violation", "capability_change", "identity_change", "guard_check"]
+    },
+    "event_data": {
+      "type": "object",
+      "required": ["guard_result"],
+      "properties": {
+        "guard_result": {
+          "type": "string",
+          "enum": ["pass", "violation"]
+        },
+        "blocking_violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "path"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["output_ref_out_of_scope", "write_out_of_scope", "control_file_modified"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "path"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["forbidden_reference"]
+              },
+              "path": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "file_delta": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "workspace_manifest_ref": {
+          "type": "string"
+        },
+        "expected_guard_writes_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  }
+}

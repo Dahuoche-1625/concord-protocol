@@ -1,0 +1,16 @@
+[
+  {
+    "agent_id": "agent-beta",
+    "capability": "quality_review",
+    "description": "Can review task outputs, verify against contracts, and approve or reject results.",
+    "verification": {
+      "method": "manual_review",
+      "evidence_refs": ["REVIEW-0001/result.json"],
+      "last_verified_at": "2026-01-01T00:00:00Z",
+      "verified_by": "human"
+    },
+    "risk_level": "low",
+    "confidence": "high",
+    "status": "active"
+  }
+]

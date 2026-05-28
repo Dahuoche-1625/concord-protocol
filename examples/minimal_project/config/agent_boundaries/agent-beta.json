@@ -1,0 +1,35 @@
+{
+  "agent_id": "agent-beta",
+  "allowed_actions": [
+    "read_project_context",
+    "write_task_result",
+    "quality_review"
+  ],
+  "denied_actions": [
+    "write_credentials",
+    "delete_project_state",
+    "approve_own_output",
+    "modify_agent_identity"
+  ],
+  "result_scope": [
+    "agents/agent-beta/results/"
+  ],
+  "artifact_scope": [
+    "MEMORY/agent/agent-beta/"
+  ],
+  "read_scope": [
+    "project_manifest.json",
+    "TASKS/active/",
+    "TASKS/archive/",
+    "agents/agent-alpha/results/",
+    "MEMORY/project/"
+  ],
+  "read_disclosure_only": true,
+  "forbidden_read": [
+    ".env",
+    "credentials/",
+    "config/agent_identities/"
+  ],
+  "risk_level": "standard",
+  "max_parallel_tasks": 1
+}

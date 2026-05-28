@@ -1,0 +1,19 @@
+{
+  "framework_version": "0.1",
+  "protocol_version": "0.1",
+  "project_id": "example_project",
+  "identity_mode": "file_bus_v1",
+  "identity_required": true,
+  "default_deny": true,
+  "guard_mode": "verify_only",
+  "protected_scope": [
+    ".framework_guard/",
+    "audit/",
+    "config/agent_identities/",
+    "config/agent_boundaries/",
+    "framework_manifest.json"
+  ],
+  "guard_workspace_excludes": [".git", "node_modules", "vendor", "archive", "cache"],
+  "audit_log": true,
+  "runtime_adapter": "file_bus_v1"
+}

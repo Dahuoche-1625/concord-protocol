@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/agent_identity.json",
+  "title": "AgentIdentity",
+  "description": "Project-level identity registry entry for an agent. Maintained by trusted agent/human.",
+  "type": "object",
+  "required": ["agent_id", "identity_proof", "status"],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "Unique agent identifier.",
+      "minLength": 1
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable agent name."
+    },
+    "identity_proof": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["file_bus_v1", "signature", "token"]
+        },
+        "public_key_ref": {
+          "type": ["string", "null"],
+          "description": "Reference to public key for signature verification. Required when mode is 'signature'."
+        }
+      }
+    },
+    "registered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "registered_by": {
+      "type": "string",
+      "description": "Who registered this identity (human or agent_id)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "disabled"],
+      "description": "Identity validity. Capability-level degradation is managed by CapabilityRecord.status."
+    }
+  }
+}

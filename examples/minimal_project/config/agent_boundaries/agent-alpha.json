@@ -1,0 +1,41 @@
+{
+  "agent_id": "agent-alpha",
+  "allowed_actions": [
+    "read_project_context",
+    "write_task_result",
+    "propose_changes",
+    "send_notification"
+  ],
+  "denied_actions": [
+    "write_credentials",
+    "delete_project_state",
+    "approve_own_output",
+    "modify_agent_identity"
+  ],
+  "result_scope": [
+    "agents/agent-alpha/results/"
+  ],
+  "artifact_scope": [
+    "MEMORY/agent/agent-alpha/",
+    "NOTIFICATIONS/"
+  ],
+  "read_scope": [
+    "project_manifest.json",
+    "source_of_truth.md",
+    "TASKS/active/",
+    "TASKS/archive/",
+    "MEMORY/project/",
+    "MEMORY/framework/",
+    "SKILLS/"
+  ],
+  "read_disclosure_only": true,
+  "forbidden_read": [
+    ".env",
+    "credentials/",
+    "config/agent_identities/",
+    "agents/*/boundary.json",
+    "MEMORY/agent/*"
+  ],
+  "risk_level": "standard",
+  "max_parallel_tasks": 1
+}

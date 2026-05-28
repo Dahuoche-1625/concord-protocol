@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/output_contract.json",
+  "title": "OutputContract",
+  "description": "Minimum requirements for agent outputs.",
+  "type": "object",
+  "required": ["task_id", "result_required", "summary_required", "output_refs_required", "source_refs_required", "atomic_write_required"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "result_required": {
+      "type": "boolean",
+      "const": true,
+      "description": "result.json is the sole basis for completion confirmation."
+    },
+    "summary_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "output_refs_required": {
+      "type": "boolean",
+      "const": true,
+      "description": "output_refs must point to completed formal files within result_scope + artifact_scope."
+    },
+    "source_refs_required": {
+      "type": "boolean",
+      "const": true,
+      "description": "source_refs must point to referenced input or context files."
+    },
+    "atomic_write_required": {
+      "type": "boolean",
+      "const": true,
+      "description": "result.json must be written to temp file first, then renamed. Half-written results not allowed."
+    },
+    "verification_refs_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Required for high-risk tasks in v0.2."
+    }
+  }
+}

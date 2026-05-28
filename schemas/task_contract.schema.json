@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/task_contract.json",
+  "title": "TaskContract",
+  "description": "Contract an agent must satisfy before accepting a task.",
+  "type": "object",
+  "required": ["task_id", "project_id", "required_capabilities", "assigned_agent", "risk_level", "status"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "assigned_agent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "depends_on": {
+      "type": "array",
+      "description": "Serial dependency chain. Task IDs that must be done before this task starts.",
+      "items": { "type": "string" }
+    },
+    "dependency_result_refs": {
+      "type": "object",
+      "description": "Optional mapping of dependency task IDs to their result paths. If not provided, RuntimeGuard resolves via upstream task.json.",
+      "additionalProperties": { "type": "string" }
+    },
+    "input_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "timeout_sec": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1800
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "partial_done", "done", "failed", "blocked", "invalid"],
+      "description": "partial_done = partially completed (some outputs done, some blocked). invalid = RuntimeGuard detected boundary violation."
+    }
+  }
+}

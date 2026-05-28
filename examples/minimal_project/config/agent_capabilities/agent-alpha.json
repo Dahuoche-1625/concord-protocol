@@ -1,0 +1,16 @@
+[
+  {
+    "agent_id": "agent-alpha",
+    "capability": "code_execution",
+    "description": "Can read project code, modify files, run tests, and submit structured results.",
+    "verification": {
+      "method": "task_history",
+      "evidence_refs": ["TASK-0000/result.json"],
+      "last_verified_at": "2026-01-01T00:00:00Z",
+      "verified_by": "human"
+    },
+    "risk_level": "medium",
+    "confidence": "high",
+    "status": "active"
+  }
+]

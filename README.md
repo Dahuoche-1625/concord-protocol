@@ -1,4 +1,6 @@
-# Agent Protocol v0.1-alpha
+# Concord Protocol v0.1-alpha
+
+[中文版](README.zh-CN.md)
 
 > A minimal executable security kernel for file-driven multi-agent collaboration.
 

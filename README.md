@@ -9,10 +9,11 @@
 1. **Who are you?** — `AgentIdentity`
 2. **What can you do?** — `CapabilityRecord` + `AgentBoundary`
 3. **How do you prove you stayed within bounds?** — `RuntimeGuard` + `AuditLog`
+4. **How do projects and runtimes stay decoupled?** — `Domain Separation Model` + Bridge Objects
 
 ## What this is
 
-A protocol for multiple AI agents to collaborate in a shared filesystem workspace without a central orchestrator. Each agent declares its identity, capabilities, and write boundaries. A `file_bus_guard` verifies before and after each task that the agent didn't write outside its allowed scope.
+A protocol for multiple AI agents to collaborate in shared or distributed workspaces without a central super-agent. Each agent declares its identity, capabilities, and write boundaries. A `file_bus_guard` verifies before and after each task that the agent didn't write outside its allowed scope. The domain separation model keeps project facts and runtime execution state isolated, connected only through bridge objects such as `TaskContract`, `TaskLease`, and `ExecutionReceipt`.
 
 ## What this is NOT
 
@@ -28,7 +29,8 @@ A protocol for multiple AI agents to collaborate in a shared filesystem workspac
 ├── SECURITY.md                      (known limitations, security model)
 ├── GOVERNANCE.md                    (how the protocol evolves)
 ├── protocol/
-│   └── reusable-multi-agent-protocol-v0.1.md
+│   ├── reusable-multi-agent-protocol-v0.1.md
+│   └── domain-separation-model-v0.1.md      (Project/Runtime isolation + Bridge Objects)
 ├── framework/
 │   ├── framework-security-kernel-v0.1.md   (V0.1 execution target — 6 objects)
 │   └── framework-extended-draft.md         (full 11-object design reference)
@@ -45,13 +47,14 @@ Read in this order:
 
 1. [`protocol/reusable-multi-agent-protocol-v0.1.md`](protocol/reusable-multi-agent-protocol-v0.1.md) — Four-layer model, capability-driven roles, committee governance.
 2. [`framework/framework-security-kernel-v0.1.md`](framework/framework-security-kernel-v0.1.md) — The 6 core objects + 2 execution mechanisms you actually implement.
-3. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
-4. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
+3. [`protocol/domain-separation-model-v0.1.md`](protocol/domain-separation-model-v0.1.md) — Project/Runtime isolation, distributed task bridge objects, leases, and receipts.
+4. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
+5. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
 
 ## Version
 
-- **v0.1-alpha** — Security kernel. `verify_only` mode. 6 objects + RuntimeGuard + AuditLog.
-- **v0.2** (planned) — Role binding, context policies, enforced sandbox mode, review gates.
+- **v0.1-alpha** — Security kernel + domain separation draft. `verify_only` mode. 6 security objects + RuntimeGuard + AuditLog + Bridge Object model.
+- **v0.2** (planned) — Role binding, context policies, enforced sandbox mode, review gates, transport adapter schemas.
 
 ## License
 

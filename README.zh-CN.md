@@ -7,10 +7,11 @@
 1. **你是谁？** — `AgentIdentity`
 2. **你能做什么？** — `CapabilityRecord` + `AgentBoundary`
 3. **你怎么证明没有越界？** — `RuntimeGuard` + `AuditLog`
+4. **项目和运行时如何解耦？** — `Domain Separation Model` + Bridge Objects
 
 ## 这是什么
 
-一套让多个 AI Agent 在共享文件系统中协作的协议。每个 Agent 声明自己的身份、能力和写入边界。`file_bus_guard` 在任务执行前后验证 Agent 没有写入越界文件。
+一套让多个 AI Agent 在共享或分布式工作区中协作的协议。每个 Agent 声明自己的身份、能力和写入边界。`file_bus_guard` 在任务执行前后验证 Agent 没有写入越界文件。域分离模型把项目事实和运行时状态隔离开，只允许通过 `TaskContract`、`TaskLease`、`ExecutionReceipt` 等桥接对象交互。
 
 ## 这不是什么
 
@@ -22,22 +23,22 @@
 
 1. [`protocol/reusable-multi-agent-protocol-v0.1.md`](protocol/reusable-multi-agent-protocol-v0.1.md) — 四层模型、能力驱动角色、委员会治理。
 2. [`framework/framework-security-kernel-v0.1.md`](framework/framework-security-kernel-v0.1.md) — 6 个核心对象 + 2 个执行机制，你需要实际实现的部分。
-3. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — 参考实现伪代码。
-4. [`examples/minimal_project/`](examples/minimal_project/) — 一个最小两 Agent 示例项目。
+3. [`protocol/domain-separation-model-v0.1.md`](protocol/domain-separation-model-v0.1.md) — Project/Runtime 隔离、分布式任务桥接对象、租约和回执。
+4. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — 参考实现伪代码。
+5. [`examples/minimal_project/`](examples/minimal_project/) — 一个最小两 Agent 示例项目。
 
 ## 核心模型
 
 ```
-Protocol Layer     → 通用协作方法
-Framework Layer    → Agent 边界、能力、权限（本协议的核心）
-Project Layer      → 项目事实、目标、业务状态机
-Agent Layer        → 单个 Agent 的上下文、skills、记忆
+Shared Layers      → Protocol / Framework / Application
+Isolated Domains   → Project Domain / Runtime Mesh Domain
+Bridge Layer       → TaskContract / TaskLease / ExecutionReceipt / ReviewResult
 ```
 
 ## 版本
 
-- **v0.1-alpha** — 安全内核。`verify_only` 模式。6 对象 + RuntimeGuard + AuditLog。
-- **v0.2** (计划中) — 角色绑定、上下文策略、enforced 沙箱、审查门禁。
+- **v0.1-alpha** — 安全内核 + 域分离草案。`verify_only` 模式。6 个安全对象 + RuntimeGuard + AuditLog + Bridge Object 模型。
+- **v0.2** (计划中) — 角色绑定、上下文策略、enforced 沙箱、审查门禁、transport adapter schema。
 
 ## License
 

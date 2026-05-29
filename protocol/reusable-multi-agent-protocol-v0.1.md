@@ -23,6 +23,8 @@ The protocol layer answers **how to collaborate, decide, verify, and upgrade**. 
 
 ## 2. Layer Model
 
+> Note: This section describes conceptual responsibilities. For distributed execution, the newer [Domain Separation Model](domain-separation-model-v0.1.md) refines the runtime shape into shared layers, isolated Project/Runtime domains, and Bridge Objects. Project Domain and Runtime Mesh Domain are peers, not parent/child layers.
+
 ### 2.1 Protocol Layer
 
 Defines general collaboration methods, not bound to project business.
@@ -65,6 +67,38 @@ Responsible for:
 ### 2.4 Agent Layer
 
 Defines a single agent's context, capabilities, skills, memory, and execution habits within a project.
+
+### 2.5 Distributed Domain Separation
+
+For multi-machine or multi-runtime collaboration, the protocol uses this corrected structure:
+
+```text
+Shared Layers:
+  Protocol
+  Framework
+  Application
+
+Isolated Domains:
+  Project Domain
+  Runtime Mesh Domain
+
+Bridge Layer:
+  TaskContract
+  TaskDispatch
+  TaskLease
+  ExecutionReceipt
+  ReviewResult
+```
+
+Hard rule:
+
+```text
+Project Domain MUST NOT directly invoke Agent.
+Runtime Mesh Domain MUST NOT directly read or own project facts.
+All cross-domain interaction MUST go through Bridge Objects.
+```
+
+See [Domain Separation Model v0.1](domain-separation-model-v0.1.md).
 
 ---
 

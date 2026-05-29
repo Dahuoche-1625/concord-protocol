@@ -10,6 +10,8 @@
 
 V0.1 is NOT a complete framework. It does ONE thing: **make agent behavior verifiable, recordable, and blockable**.
 
+For distributed project/runtime separation, see [Domain Separation Model v0.1](../protocol/domain-separation-model-v0.1.md). The security kernel answers "did this agent stay within its boundary?"; the domain separation model answers "was this cross-domain interaction authorized, minimal, auditable, and contract-based?"
+
 Out of scope for V0.1:
 - Dynamic role binding (v0.2)
 - Context assembly policies (v0.2)

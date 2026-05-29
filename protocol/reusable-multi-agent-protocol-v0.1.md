@@ -5,6 +5,17 @@
 
 ---
 
+## Known v0.1 Debts
+
+These are accepted v0.1-alpha debts and should be resolved in v0.2 before promoting the protocol beyond draft status.
+
+1. **Layer model consolidation.** Sections 2.1-2.4 describe the original conceptual four-layer model. Section 2.5 and [Domain Separation Model v0.1](domain-separation-model-v0.1.md) refine distributed execution into Shared Layers, Isolated Domains, and Bridge Layer. v0.2 should rewrite Section 2 around the newer domain model instead of carrying both forms.
+2. **Task assignment schema split.** Section 4.5 `Task` includes `assigned_agent`, which is valid for local or single-worker execution. Distributed bridge mode should use capability/mesh dispatch and bind the concrete worker only through `TaskLease`. v0.2 should split local task snapshots from bridge-layer `TaskContract`.
+3. **Bridge TaskContract shape.** Resolved in [Domain Separation Model v0.1 §13.1](domain-separation-model-v0.1.md#131-taskcontract). Dedicated JSON Schema is deferred until one reference bridge implementation validates the flow.
+4. **Distributed transport adapter.** v0.1 defines adapter obligations but does not implement `feishu_bus_v1`, `http_bus_v1`, or `queue_bus_v1`. v0.2 should add at least one adapter with atomic lease claim.
+
+---
+
 ## 1. Protocol Positioning
 
 This protocol is not a project runbook, nor is it a scheduling script for any specific agent.

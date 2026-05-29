@@ -295,6 +295,20 @@ invalid -> reviewed
 
 Invalid transitions MUST be rejected and audited.
 
+### 6.4 Partial Completion Retry Semantics
+
+`partial_done -> dispatched` means the task is being continued or retried after partial output exists.
+
+Rules:
+- Prior artifacts MUST be preserved unless `OutputContract` explicitly allows replacement.
+- New workers inherit prior artifacts only through `source_refs` and `artifact_refs`; they do not gain unrestricted project or runtime context.
+- TaskContract or OutputContract MUST define whether the next attempt is:
+  - `continue`: reuse completed artifacts and produce missing outputs
+  - `retry_failed_parts`: preserve successful artifacts and retry only failed units
+  - `restart`: ignore partial artifacts for execution, but preserve them for audit
+- Retry or continuation MUST reference the previous `ExecutionReceipt`.
+- A new claim after `partial_done` MUST create a new `TaskLease`.
+
 ---
 
 ## 7. Lease and Retry Rules
@@ -307,6 +321,8 @@ Distributed workers require explicit lease semantics.
 - Lease claim MUST be atomic.
 - Lease MUST include `lease_until`.
 - Worker MUST renew lease before expiration for long-running work.
+- Lease renewal MUST be confirmed before the previous `lease_until`.
+- If renewal confirmation is not received before `lease_until`, Worker MUST stop execution and MUST NOT write a completion receipt under the expired lease.
 - Expired lease does not prove task failure; it only removes exclusive ownership.
 - A worker without an active lease MUST NOT write `ExecutionReceipt` for that task.
 

@@ -30,7 +30,8 @@ A protocol for multiple AI agents to collaborate in shared or distributed worksp
 ├── GOVERNANCE.md                    (how the protocol evolves)
 ├── protocol/
 │   ├── reusable-multi-agent-protocol-v0.1.md
-│   └── domain-separation-model-v0.1.md      (Project/Runtime isolation + Bridge Objects)
+│   ├── domain-separation-model-v0.1.md      (Project/Runtime isolation + Bridge Objects)
+│   └── domain-separation-diagrams-v0.1.md   (Mermaid diagrams)
 ├── framework/
 │   ├── framework-security-kernel-v0.1.md   (V0.1 execution target — 6 objects)
 │   └── framework-extended-draft.md         (full 11-object design reference)
@@ -55,7 +56,7 @@ Read in this order:
 ## Version
 
 - **v0.1-alpha** — Security kernel + domain separation draft. `verify_only` mode. 6 security objects + RuntimeGuard + AuditLog + Bridge Object model.
-- **v0.2** (planned) — Role binding, context policies, enforced sandbox mode, review gates, transport adapter schemas.
+- **v0.2** (planned) — Main protocol model consolidation, Task schema split, role binding, context policies, enforced sandbox mode, review gates, transport adapter schemas.
 
 ## License
 

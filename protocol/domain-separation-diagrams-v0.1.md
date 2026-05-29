@@ -176,7 +176,28 @@ flowchart TB
 
 ---
 
-## 6. Security Kernel Relationship
+## 6. TaskContract to Lease Binding
+
+```mermaid
+flowchart LR
+  Project["Project Domain<br/>business intent"]
+  Contract["TaskContract<br/>required_capabilities<br/>context_scope<br/>input_refs<br/>output_contract_ref"]
+  Dispatch["TaskDispatch<br/>target_mesh<br/>dispatch_policy"]
+  Lease["TaskLease<br/>agent_id + node_id<br/>lease_until"]
+  Worker["Worker Agent<br/>local execution"]
+
+  Project --> Contract
+  Contract --> Dispatch
+  Dispatch --> Lease
+  Lease --> Worker
+
+  Contract -.->|distributed mode: assigned_agent is null| Dispatch
+  Lease -.->|claim binds concrete worker| Contract
+```
+
+---
+
+## 7. Security Kernel Relationship
 
 ```mermaid
 flowchart LR

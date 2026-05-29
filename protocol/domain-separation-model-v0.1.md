@@ -509,7 +509,49 @@ Both checks must pass before a result can be accepted.
 
 These shapes are normative field guidance for v0.1. Dedicated JSON Schema files may be added after one reference implementation validates the flow.
 
-### 13.1 TaskDispatch
+### 13.1 TaskContract
+
+```json
+{
+  "task_id": "TASK-0001",
+  "project_id": "example_project",
+  "application_id": "ai_account_ops",
+  "required_capabilities": ["video_pipeline_execution"],
+  "output_contract_ref": "output_contracts/TASK-0001.json",
+  "context_scope": "task_only | project_limited | reusable",
+  "context_expires_at": "ISO8601",
+  "input_refs": [
+    "project://deployment_manifest.local.json",
+    "feishu://base/drama_main/N626"
+  ],
+  "redactions": [
+    "oauth_token",
+    "client_secret",
+    "full_channel_registry"
+  ],
+  "dispatch_policy": "any | capability_match | assigned",
+  "target_mesh": "mesh-any | mesh-id",
+  "assigned_agent": null,
+  "risk_level": "low | medium | high",
+  "timeout_sec": 1800,
+  "created_by": "project-authorized-issuer",
+  "created_at": "ISO8601",
+  "source_refs": [
+    "project://source_of_truth"
+  ]
+}
+```
+
+Rules:
+- In distributed bridge mode, `assigned_agent` SHOULD be `null` until `TaskLease` is claimed.
+- In single-worker or local `file_bus_v1` mode, `assigned_agent` MAY be populated before execution.
+- `input_refs` MUST disclose only the minimum project context required for the task.
+- `redactions` MUST list project facts or secret classes intentionally excluded from runtime disclosure.
+- `dispatch_policy: assigned` requires an explicit `assigned_agent` or an equivalent project-authorized assignment reference.
+
+This bridge-layer shape extends the security-kernel `TaskContract` concept for distributed dispatch. It does not remove the local `file_bus_v1` task shape used by RuntimeGuard.
+
+### 13.2 TaskDispatch
 
 ```json
 {
@@ -525,7 +567,7 @@ These shapes are normative field guidance for v0.1. Dedicated JSON Schema files 
 }
 ```
 
-### 13.2 TaskLease
+### 13.3 TaskLease
 
 ```json
 {
@@ -540,7 +582,7 @@ These shapes are normative field guidance for v0.1. Dedicated JSON Schema files 
 }
 ```
 
-### 13.3 ExecutionReceipt
+### 13.4 ExecutionReceipt
 
 ```json
 {
@@ -559,7 +601,7 @@ These shapes are normative field guidance for v0.1. Dedicated JSON Schema files 
 }
 ```
 
-### 13.4 ReviewResult
+### 13.5 ReviewResult
 
 ```json
 {

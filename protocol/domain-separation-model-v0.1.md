@@ -4,6 +4,8 @@
 > Goal: Define how shared protocol layers, isolated project/runtime domains, and bridge objects interact in distributed multi-agent collaboration.
 > Relationship: Complements the Framework Security Kernel. The security kernel defines what agents must not do; this model defines who may talk to whom, through which objects.
 
+Visual companion: [Domain Separation Diagrams v0.1](domain-separation-diagrams-v0.1.md).
+
 ---
 
 ## 1. Purpose

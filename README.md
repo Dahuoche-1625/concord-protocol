@@ -31,7 +31,8 @@ A protocol for multiple AI agents to collaborate in shared or distributed worksp
 ├── protocol/
 │   ├── reusable-multi-agent-protocol-v0.1.md
 │   ├── domain-separation-model-v0.1.md      (Project/Runtime isolation + Bridge Objects)
-│   └── domain-separation-diagrams-v0.1.md   (Mermaid diagrams)
+│   ├── domain-separation-diagrams-v0.1.md   (Mermaid diagrams)
+│   └── v0.2-roadmap.md                      (bridge hardening roadmap)
 ├── framework/
 │   ├── framework-security-kernel-v0.1.md   (V0.1 execution target — 6 objects)
 │   └── framework-extended-draft.md         (full 11-object design reference)
@@ -50,8 +51,9 @@ Read in this order:
 2. [`framework/framework-security-kernel-v0.1.md`](framework/framework-security-kernel-v0.1.md) — The 6 core objects + 2 execution mechanisms you actually implement.
 3. [`protocol/domain-separation-model-v0.1.md`](protocol/domain-separation-model-v0.1.md) — Project/Runtime isolation, distributed task bridge objects, leases, and receipts.
 4. [`protocol/domain-separation-diagrams-v0.1.md`](protocol/domain-separation-diagrams-v0.1.md) — Mermaid diagrams for the domain separation architecture.
-5. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
-6. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
+5. [`protocol/v0.2-roadmap.md`](protocol/v0.2-roadmap.md) — Roadmap for bridge object hardening and validation.
+6. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
+7. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
 
 ## Version
 

@@ -1,0 +1,28 @@
+{
+  "review_id": "{{REVIEW_ID}}",
+  "task_id": "{{TASK_ID}}",
+  "receipt_id": "{{RECEIPT_ID}}",
+  "reviewer_id": "{{REVIEWER_ID}}",
+  "decision": "accepted | rejected | retry_requested | escalated",
+  "rationale": "{{REVIEW_RATIONALE}}",
+  "acceptance_checks": [
+    {
+      "criterion": "final artifact exists",
+      "status": "pass | fail | not_checked"
+    },
+    {
+      "criterion": "artifact_refs include size_bytes and sha256",
+      "status": "pass | fail | not_checked"
+    },
+    {
+      "criterion": "RuntimeGuard guarded_verify result is pass",
+      "status": "pass | fail | not_checked"
+    }
+  ],
+  "next_task_refs": [],
+  "reviewed_at": "{{REVIEWED_AT_ISO8601}}",
+  "source_refs": [
+    "bridge_objects/execution_receipt.json",
+    "examples/bridge_loop_pilot/acceptance_criteria.md"
+  ]
+}

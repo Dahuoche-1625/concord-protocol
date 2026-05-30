@@ -1,16 +1,16 @@
 {
-  "task_id": "TASK-PILOT-0001",
+  "task_id": "{{TASK_ID}}",
   "task_mode": "bridge",
-  "project_id": "example_project",
-  "application_id": "video_pipeline_ops",
+  "project_id": "{{PROJECT_ID}}",
+  "application_id": "{{APPLICATION_ID}}",
   "required_protocol_version": "0.2",
-  "required_capabilities": ["video_pipeline_execution"],
-  "output_contract_ref": "bridge_objects/output_contract.json",
+  "required_capabilities": ["{{REQUIRED_CAPABILITY}}"],
+  "output_contract_ref": "{{OUTPUT_CONTRACT_REF}}",
   "context_scope": "task_only",
-  "context_expires_at": "2026-06-01T00:00:00Z",
+  "context_expires_at": "{{CONTEXT_EXPIRES_AT_ISO8601}}",
   "input_refs": [
     "project://deployment_manifest.local.json",
-    "project://sample_inputs/TASK-PILOT-0001/"
+    "project://{{TASK_INPUT_REF}}"
   ],
   "redactions": [
     "oauth_token",
@@ -19,7 +19,7 @@
     "full_project_memory"
   ],
   "dispatch_policy": "capability_match",
-  "target_mesh": "mesh-local-pilot",
+  "target_mesh": "{{TARGET_MESH_ID}}",
   "assigned_agent": null,
   "risk_level": "low",
   "timeout_sec": 1800,
@@ -30,16 +30,17 @@
     "RuntimeGuard guarded_verify result is pass",
     "ReviewResult references this task receipt"
   ],
-  "validation_script_ref": "validators/bridge_loop_pilot.py",
+  "validation_script_ref": "{{VALIDATION_SCRIPT_REF}}",
   "contract_clarity_score": 4,
-  "created_by": "project-authorized-issuer",
-  "created_at": "2026-05-30T00:00:00Z",
+  "created_by": "{{PROJECT_AUTHORIZED_ISSUER}}",
+  "created_at": "{{CREATED_AT_ISO8601}}",
   "source_refs": [
-    "protocol/v0.2-pilot-plan.md"
+    "protocol/v0.2-pilot-plan.md",
+    "examples/bridge_loop_pilot/acceptance_criteria.md"
   ],
   "source_proof": {
     "method": "hash_chain",
-    "key_ref": "pilot-local-only",
+    "key_ref": "{{PROJECT_KEY_REF_OR_LOCAL_PLACEHOLDER}}",
     "signed_fields": [
       "task_id",
       "project_id",
@@ -47,6 +48,6 @@
       "input_refs",
       "acceptance_criteria"
     ],
-    "value": "PLACEHOLDER_SOURCE_PROOF"
+    "value": "{{SOURCE_PROOF_VALUE}}"
   }
 }

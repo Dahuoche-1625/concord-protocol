@@ -1,0 +1,14 @@
+{
+  "dispatch_id": "{{DISPATCH_ID}}",
+  "task_id": "{{TASK_ID}}",
+  "project_id": "{{PROJECT_ID}}",
+  "target_mesh": "{{TARGET_MESH_ID}}",
+  "required_capabilities": ["{{REQUIRED_CAPABILITY}}"],
+  "dispatch_policy": "capability_match",
+  "dispatch_status": "open",
+  "created_at": "{{CREATED_AT_ISO8601}}",
+  "created_by": "{{COORDINATOR_AGENT_ID}}",
+  "source_refs": [
+    "bridge_objects/task_contract.json"
+  ]
+}

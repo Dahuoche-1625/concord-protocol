@@ -1,0 +1,20 @@
+{
+  "lease_id": "{{LEASE_ID}}",
+  "task_id": "{{TASK_ID}}",
+  "dispatch_id": "{{DISPATCH_ID}}",
+  "claimed_by": "{{WORKER_AGENT_ID}}",
+  "node_id": "{{NODE_ID}}",
+  "claimed_at": "{{CLAIMED_AT_ISO8601}}",
+  "lease_until": "{{LEASE_UNTIL_ISO8601}}",
+  "status": "active",
+  "claim_proof": {
+    "method": "hash_chain",
+    "node_id": "{{NODE_ID}}",
+    "agent_id": "{{WORKER_AGENT_ID}}",
+    "timestamp": "{{CLAIMED_AT_ISO8601}}",
+    "value": "{{CLAIM_PROOF_VALUE}}"
+  },
+  "source_refs": [
+    "bridge_objects/task_dispatch.json"
+  ]
+}

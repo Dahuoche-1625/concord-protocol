@@ -1,0 +1,42 @@
+{
+  "receipt_id": "{{RECEIPT_ID}}",
+  "task_id": "{{TASK_ID}}",
+  "lease_id": "{{LEASE_ID}}",
+  "agent_id": "{{WORKER_AGENT_ID}}",
+  "node_id": "{{NODE_ID}}",
+  "status": "done",
+  "artifact_refs": [
+    {
+      "artifact_id": "{{ARTIFACT_ID}}",
+      "type": "video",
+      "uri": "{{ARTIFACT_URI}}",
+      "sha256": "{{ARTIFACT_SHA256}}",
+      "size_bytes": 0,
+      "created_at": "{{ARTIFACT_CREATED_AT_ISO8601}}",
+      "media_duration_sec": 0,
+      "producer_agent_id": "{{WORKER_AGENT_ID}}",
+      "task_id": "{{TASK_ID}}"
+    }
+  ],
+  "log_refs": [
+    "{{PIPELINE_LOG_REF}}"
+  ],
+  "warnings": [],
+  "errors": [],
+  "guard_result": {
+    "mode": "guarded_verify",
+    "status": "pass",
+    "blocking_violations": [],
+    "warnings": []
+  },
+  "execution_hash": {
+    "method": "sha256",
+    "artifact_refs_hash": "{{ARTIFACT_REFS_HASH}}",
+    "receipt_hash": "{{RECEIPT_HASH}}"
+  },
+  "generated_at": "{{GENERATED_AT_ISO8601}}",
+  "source_refs": [
+    "{{PIPELINE_LOG_REF}}",
+    "bridge_objects/task_lease.json"
+  ]
+}

@@ -52,8 +52,10 @@ Read in this order:
 3. [`protocol/domain-separation-model-v0.1.md`](protocol/domain-separation-model-v0.1.md) — Project/Runtime isolation, distributed task bridge objects, leases, and receipts.
 4. [`protocol/domain-separation-diagrams-v0.1.md`](protocol/domain-separation-diagrams-v0.1.md) — Mermaid diagrams for the domain separation architecture.
 5. [`protocol/v0.2-roadmap.md`](protocol/v0.2-roadmap.md) — Roadmap for bridge object hardening and validation.
-6. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
-7. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
+6. [`protocol/v0.2-pilot-plan.md`](protocol/v0.2-pilot-plan.md) — First pilot plan for validating the bridge loop.
+7. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
+8. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
+9. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — Draft bridge object templates for the v0.2 pilot.
 
 ## Version
 

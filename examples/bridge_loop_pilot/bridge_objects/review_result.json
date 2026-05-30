@@ -1,0 +1,27 @@
+{
+  "review_id": "REVIEW-PILOT-0001",
+  "task_id": "TASK-PILOT-0001",
+  "receipt_id": "RECEIPT-PILOT-0001",
+  "reviewer_id": "review-agent-id",
+  "decision": "accepted",
+  "rationale": "Pilot receipt satisfies placeholder acceptance criteria. Replace placeholder artifact values in a real run.",
+  "acceptance_checks": [
+    {
+      "criterion": "final artifact exists",
+      "status": "placeholder"
+    },
+    {
+      "criterion": "artifact_refs include size_bytes and sha256",
+      "status": "placeholder"
+    },
+    {
+      "criterion": "RuntimeGuard guarded_verify result is pass",
+      "status": "pass"
+    }
+  ],
+  "next_task_refs": [],
+  "reviewed_at": "2026-05-30T00:25:00Z",
+  "source_refs": [
+    "bridge_objects/execution_receipt.json"
+  ]
+}

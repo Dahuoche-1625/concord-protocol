@@ -26,8 +26,10 @@
 3. [`protocol/domain-separation-model-v0.1.md`](protocol/domain-separation-model-v0.1.md) — Project/Runtime 隔离、分布式任务桥接对象、租约和回执。
 4. [`protocol/domain-separation-diagrams-v0.1.md`](protocol/domain-separation-diagrams-v0.1.md) — 域分离架构的 Mermaid 图表。
 5. [`protocol/v0.2-roadmap.md`](protocol/v0.2-roadmap.md) — Bridge Object 加固与验证路线图。
-6. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — 参考实现伪代码。
-7. [`examples/minimal_project/`](examples/minimal_project/) — 一个最小两 Agent 示例项目。
+6. [`protocol/v0.2-pilot-plan.md`](protocol/v0.2-pilot-plan.md) — v0.2 Bridge Loop 首次试点计划。
+7. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — 参考实现伪代码。
+8. [`examples/minimal_project/`](examples/minimal_project/) — 一个最小两 Agent 示例项目。
+9. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — v0.2 试点 Bridge Object 模板。
 
 ## 核心模型
 

@@ -32,6 +32,7 @@ A protocol for multiple AI agents to collaborate in shared or distributed worksp
 │   ├── reusable-multi-agent-protocol-v0.1.md
 │   ├── domain-separation-model-v0.1.md      (Project/Runtime isolation + Bridge Objects)
 │   ├── domain-separation-diagrams-v0.1.md   (Mermaid diagrams)
+│   ├── concord-bridge-hardening-v0.2.md      (pilot-validated bridge constraints)
 │   └── v0.2-roadmap.md                      (bridge hardening roadmap)
 ├── framework/
 │   ├── framework-security-kernel-v0.1.md   (V0.1 execution target — 6 objects)
@@ -53,9 +54,11 @@ Read in this order:
 4. [`protocol/domain-separation-diagrams-v0.1.md`](protocol/domain-separation-diagrams-v0.1.md) — Mermaid diagrams for the domain separation architecture.
 5. [`protocol/v0.2-roadmap.md`](protocol/v0.2-roadmap.md) — Roadmap for bridge object hardening and validation.
 6. [`protocol/v0.2-pilot-plan.md`](protocol/v0.2-pilot-plan.md) — First pilot plan for validating the bridge loop.
-7. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
-8. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
-9. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — Draft bridge object templates for the v0.2 pilot.
+7. [`protocol/concord-bridge-hardening-v0.2.md`](protocol/concord-bridge-hardening-v0.2.md) — Pilot-validated lifecycle, secret stripping, external artifact, guard, and protocol-lock rules.
+8. [`reference/file_bus_guard_v0.md`](reference/file_bus_guard_v0.md) — Reference implementation pseudocode.
+9. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
+10. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — Draft bridge object templates for the v0.2 pilot.
+11. [`examples/protocol_lock.example.json`](examples/protocol_lock.example.json) — Non-production protocol lock example.
 
 ## Version
 

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/protocol_lock.json",
+  "title": "Concord Protocol Lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lock_status", "concord_version", "source_commit", "generated_at", "compatibility", "schema_hashes", "guard_profile_hash"],
+  "properties": {
+    "schema_version": { "const": "protocol_lock_v0.1" },
+    "lock_status": { "enum": ["example", "release"] },
+    "concord_version": { "type": "string", "minLength": 1 },
+    "source_commit": { "type": "string", "pattern": "^[A-Fa-f0-9]{7,64}$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": { "type": "string", "minLength": 1 },
+        "maximum": { "type": "string", "minLength": 1 }
+      }
+    },
+    "schema_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" }
+    },
+    "guard_profile_hash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "required_bridge_objects": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["TaskContract", "TaskDispatch", "TaskLease", "ExecutionReceipt", "ReviewResult", "AuditLog"] }
+    }
+  }
+}

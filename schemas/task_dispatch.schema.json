@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/task_dispatch.json",
+  "title": "TaskDispatch",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["dispatch_id", "task_id", "project_id", "target_mesh", "required_capabilities", "dispatch_policy", "dispatch_status", "created_at", "created_by", "source_refs"],
+  "properties": {
+    "dispatch_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "target_mesh": { "type": "string", "minLength": 1 },
+    "required_capabilities": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "dispatch_policy": { "enum": ["any", "capability_match", "assigned"] },
+    "dispatch_status": { "enum": ["open", "claimed", "cancelled", "closed"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "created_by": { "type": "string", "minLength": 1 },
+    "source_refs": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+  }
+}

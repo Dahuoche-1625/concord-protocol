@@ -1,0 +1,23 @@
+{
+  "schema_version": "protocol_lock_v0.1",
+  "lock_status": "example",
+  "concord_version": "0.2-draft",
+  "source_commit": "0000000",
+  "generated_at": "2026-01-01T00:00:00Z",
+  "compatibility": {
+    "minimum": "0.2",
+    "maximum": "0.2"
+  },
+  "schema_hashes": {
+    "task_contract_v0.2.schema.json": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "guard_profile_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "required_bridge_objects": [
+    "TaskContract",
+    "TaskDispatch",
+    "TaskLease",
+    "ExecutionReceipt",
+    "ReviewResult",
+    "AuditLog"
+  ]
+}

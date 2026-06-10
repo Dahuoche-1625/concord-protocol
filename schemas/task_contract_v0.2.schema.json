@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-protocol.dev/schemas/task_contract_v0.2.json",
+  "title": "TaskContract v0.2",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "task_id", "task_mode", "project_id", "application_id",
+    "required_protocol_version", "required_capabilities", "context_scope",
+    "context_expires_at", "input_refs", "redactions", "dispatch_policy",
+    "target_mesh", "assigned_agent", "risk_level", "acceptance_criteria",
+    "contract_clarity_score", "created_by", "created_at", "source_proof"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_mode": { "const": "bridge" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "application_id": { "type": "string", "minLength": 1 },
+    "required_protocol_version": { "type": "string", "minLength": 1 },
+    "required_capabilities": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "output_contract_ref": { "type": "string" },
+    "context_scope": { "const": "task_only" },
+    "context_expires_at": { "type": "string", "format": "date-time" },
+    "input_refs": { "type": "array", "items": { "type": "string" } },
+    "redactions": { "type": "array", "items": { "type": "string" } },
+    "dispatch_policy": { "enum": ["any", "capability_match", "assigned"] },
+    "target_mesh": { "type": "string", "minLength": 1 },
+    "assigned_agent": { "type": "null" },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "timeout_sec": { "type": "integer", "minimum": 1 },
+    "acceptance_criteria": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "validation_script_ref": { "type": "string" },
+    "contract_clarity_score": { "type": "integer", "minimum": 3, "maximum": 5 },
+    "created_by": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_refs": { "type": "array", "items": { "type": "string" } },
+    "source_proof": { "$ref": "#/$defs/proof" }
+  },
+  "$defs": {
+    "proof": {
+      "type": "object",
+      "required": ["method", "signed_fields", "value"],
+      "properties": {
+        "method": { "enum": ["hmac", "signature", "hash_chain"] },
+        "key_ref": { "type": "string" },
+        "signed_fields": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

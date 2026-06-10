@@ -11,6 +11,7 @@
   "schema_hashes": {
     "task_contract_v0.2.schema.json": "0000000000000000000000000000000000000000000000000000000000000000"
   },
+  "guard_profile_ref": "guards/example_guard_profile.json",
   "guard_profile_hash": "0000000000000000000000000000000000000000000000000000000000000000",
   "required_bridge_objects": [
     "TaskContract",

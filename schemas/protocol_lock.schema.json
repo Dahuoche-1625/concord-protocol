@@ -4,7 +4,7 @@
   "title": "Concord Protocol Lock",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "lock_status", "concord_version", "source_commit", "generated_at", "compatibility", "schema_hashes", "guard_profile_hash"],
+  "required": ["schema_version", "lock_status", "concord_version", "source_commit", "generated_at", "compatibility", "schema_hashes", "guard_profile_ref", "guard_profile_hash"],
   "properties": {
     "schema_version": { "const": "protocol_lock_v0.1" },
     "lock_status": { "enum": ["example", "release"] },
@@ -25,6 +25,7 @@
       "minProperties": 1,
       "additionalProperties": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" }
     },
+    "guard_profile_ref": { "type": "string", "minLength": 1 },
     "guard_profile_hash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
     "required_bridge_objects": {
       "type": "array",

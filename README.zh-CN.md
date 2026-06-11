@@ -44,7 +44,7 @@ Bridge Layer       → TaskContract / TaskLease / ExecutionReceipt / ReviewResul
 ## 版本
 
 - **v0.1-alpha** — 安全内核 + 域分离草案。`verify_only` 模式。6 个安全对象 + RuntimeGuard + AuditLog + Bridge Object 模型。
-- **v0.2** (计划中) — 主协议层模型统一、Task schema 拆分、角色绑定、上下文策略、enforced 沙箱、审查门禁、transport adapter schema。
+- **v0.2**（pilot-validated draft）— 主协议层模型统一、Task schema 拆分、角色绑定、上下文策略、`guarded_verify`、审查门禁和 transport adapter schema。完整 OS 级 `enforced` 模式继续延后。
 
 ## License
 

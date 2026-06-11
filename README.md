@@ -63,7 +63,7 @@ Read in this order:
 ## Version
 
 - **v0.1-alpha** — Security kernel + domain separation draft. `verify_only` mode. 6 security objects + RuntimeGuard + AuditLog + Bridge Object model.
-- **v0.2** (planned) — Main protocol model consolidation, Task schema split, role binding, context policies, enforced sandbox mode, review gates, transport adapter schemas.
+- **v0.2** (pilot-validated draft) — Main protocol model consolidation, Task schema split, role binding, context policies, `guarded_verify`, review gates, and transport adapter schemas. Full OS-level `enforced` mode remains deferred.
 
 ## License
 

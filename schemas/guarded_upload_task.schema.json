@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://concord-protocol.dev/schemas/guarded_upload_task_v0.1",
-  "title": "Guarded Upload TaskContract v0.1",
+  "$id": "https://concord-protocol.dev/schemas/guarded_upload_task_v0.2",
+  "title": "Guarded Upload TaskContract v0.2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,7 +11,8 @@
     "risk_level", "acceptance_criteria", "contract_clarity_score",
     "source_proof",
     "upload_parameters", "validation_gates",
-    "approval_grant", "execution_host"
+    "approval_grant", "execution_host",
+    "idempotency_key", "receipt_config"
   ],
   "properties": {
     "task_id": { "type": "string", "minLength": 1 },
@@ -28,7 +29,7 @@
     "context_expires_at": { "type": "string", "format": "date-time" },
     "input_refs": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": { "type": "string", "pattern": "^(manifest|external)://" }
     },
     "redactions": {
       "type": "array", "minItems": 1, "uniqueItems": true,
@@ -45,12 +46,11 @@
     "idempotency_key": {
       "type": "string",
       "minLength": 8,
-      "description": "唯一上传键；Runtime 必须在启动上传前检查是否已有同键 receipt，防止重试产生重复视频"
+      "description": "Unique upload key. Runtime must check no prior receipt exists for this key before uploading."
     },
     "execution_host": {
       "type": "string",
-      "enum": ["windows_local_powershell", "mac_durable_runner", "task_scheduler"],
-      "description": "上传必须由本机持久 runner 承载，禁止 agent_tool"
+      "enum": ["windows_local_powershell", "mac_durable_runner", "task_scheduler"]
     },
     "upload_parameters": {
       "type": "object",
@@ -62,7 +62,10 @@
           "additionalProperties": false,
           "required": ["path", "sha256", "size_bytes", "duration_seconds"],
           "properties": {
-            "path": { "type": "string" },
+            "path": {
+              "type": "string",
+              "pattern": "^(manifest|external)://.+"
+            },
             "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
             "size_bytes": { "type": "integer", "minimum": 10485760 },
             "duration_seconds": { "type": "number", "minimum": 1 }
@@ -81,7 +84,10 @@
             },
             "category_id": { "type": "integer", "minimum": 1, "maximum": 44 },
             "privacy_status": { "enum": ["private", "unlisted", "public"] },
-            "thumbnail_path": { "type": "string" },
+            "thumbnail_path": {
+              "type": "string",
+              "pattern": "^(manifest|external)://.+"
+            },
             "language": { "type": "string", "minLength": 2, "maxLength": 5 }
           }
         },
@@ -97,20 +103,23 @@
             },
             "token_ref": {
               "type": "string",
-              "pattern": "^secret://[A-Za-z0-9_-]+$",
-              "description": "逻辑引用；Runtime 从本机 manifest 的 secrets 映射解析真实路径"
+              "pattern": "^secret://[A-Za-z0-9_-]+$"
             }
           }
         },
         "receipt_config": {
           "type": "object",
           "additionalProperties": false,
+          "required": ["receipt_output_dir", "emergency_journal_dir"],
           "properties": {
             "receipt_prefix": { "type": "string" },
-            "receipt_output_dir": { "type": "string" },
+            "receipt_output_dir": {
+              "type": "string",
+              "pattern": "^(manifest|external)://.+"
+            },
             "emergency_journal_dir": {
               "type": "string",
-              "description": "当 receipt 写入失败时，emergency journal 保存 video_id 和其他关键信息"
+              "pattern": "^(manifest|external)://.+"
             }
           }
         }
@@ -122,7 +131,8 @@
       "required": [
         "require_owner_approval", "require_expected_channel_id_match",
         "require_token_existence", "require_receipt_on_completion",
-        "block_public_without_explicit_approval", "block_unknown_channel"
+        "block_public_without_explicit_approval", "block_unknown_channel",
+        "max_retries", "local_quota_gate_enabled", "daily_upload_limit"
       ],
       "properties": {
         "require_owner_approval": { "const": true },
@@ -133,45 +143,25 @@
         "block_public_without_explicit_approval": { "const": true },
         "block_unknown_channel": { "const": true },
         "max_retries": { "type": "integer", "minimum": 0, "maximum": 3 },
-        "local_quota_gate_enabled": {
-          "type": "boolean",
-          "description": "Project 本地上传预算门禁。YouTube API 无直接 quota 查询，由 Project 维护本地预算计数"
-        },
-        "daily_upload_limit": {
-          "type": "integer", "minimum": 1,
-          "description": "Project 单日上传上限，与 Google quota 互补"
-        }
+        "local_quota_gate_enabled": { "const": true },
+        "daily_upload_limit": { "type": "integer", "minimum": 1 }
       }
     },
-    "approval_grant": {
+    "approval_grant": { "$ref": "approval_grant.schema.json" },
+    "revocation_check": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "approval_id", "action", "artifact_sha256", "channel_id",
-        "max_privacy", "granted_by", "granted_at", "expires_at", "source_proof"
-      ],
+      "required": ["revocation_list_ref", "max_staleness_seconds"],
       "properties": {
-        "approval_id": { "type": "string", "pattern": "^[a-f0-9-]{36}$" },
-        "action": { "const": "upload" },
-        "artifact_sha256": {
-          "type": "string", "pattern": "^[a-f0-9]{64}$",
-          "description": "批准的成品 SHA256；Contract 的 artifact_ref.sha256 必须与此匹配"
+        "revocation_list_ref": {
+          "type": "string",
+          "pattern": "^(manifest|external)://.+",
+          "description": "Project-maintained revocation list. Runtime must check before claim."
         },
-        "channel_id": {
-          "type": "string", "pattern": "^UC[A-Za-z0-9_-]{22}$",
-          "description": "批准的频道；必须与 channel_binding.expected_channel_id 匹配"
-        },
-        "max_privacy": {
-          "enum": ["private", "unlisted", "public"],
-          "description": "批准的最高公开级别；Contract 的 privacy_status 不得超过此级别"
-        },
-        "granted_by": { "type": "string", "minLength": 1 },
-        "granted_at": { "type": "string", "format": "date-time" },
-        "expires_at": { "type": "string", "format": "date-time" },
-        "revoked": { "type": "boolean", "default": false },
-        "revoked_at": { "type": "string", "format": "date-time" },
-        "conditions": { "type": "string" },
-        "source_proof": { "$ref": "#/$defs/proof" }
+        "max_staleness_seconds": {
+          "type": "integer", "minimum": 60,
+          "description": "Maximum age of cached revocation list before re-fetch is required"
+        }
       }
     }
   },
@@ -193,7 +183,17 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "upload_parameters": { "properties": { "metadata": { "properties": { "privacy_status": { "const": "public" } } } } } } },
+      "if": {
+        "properties": {
+          "upload_parameters": {
+            "properties": {
+              "metadata": {
+                "properties": { "privacy_status": { "const": "public" } }
+              }
+            }
+          }
+        }
+      },
       "then": {
         "properties": {
           "approval_grant": {

@@ -1,8 +1,8 @@
 # Upload Guarded Verify — 负向测试矩阵 v0.2
 
-> 对应 Schema: `schemas/guarded_upload_task.schema.json` v0.1
+> 对应 Schema: `schemas/guarded_upload_task.schema.json` v0.2
 > 对应 ApprovalGrant: `schemas/approval_grant.schema.json` v0.1
-> 19 P0 / 4 P1 / 1 P2 / 2 smoke，共 26 项
+> 19 P0 / 5 P1 / 1 P2 / 2 smoke，共 27 项
 
 ## Phase 1: Preflight — 不发起 YouTube API
 
@@ -30,7 +30,7 @@
 
 | # | Guard | 测试输入 | 预期 | 级别 |
 |---|---|---|---|---|
-| NT-18 | channel_id 不匹配 | token 属 `UC_OTHER_123`，grant 声明 `UC_EXPECTED_456` | `FAIL channel mismatch` | P0 |
+| NT-18 | channel_id 不匹配 | token 属 `UCAbCdEfGhIjKlMnOpQrStUv`，contract 声明 `UCXyZxYzXyZxYzXyZxYzXyZxY` | `FAIL channel mismatch` | P0 |
 | NT-19 | OAuth scope 不足 | token 无 `youtube.upload` | `FAIL oauth scope insufficient` | P0 |
 | NT-20 | token 过期且无 refresh | expiry 已过，refresh_token 无效 | `FAIL token expired, cannot refresh` | P1 |
 

@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concord-protocol.dev/schemas/guarded_upload_task_v0.1",
+  "title": "Guarded Upload TaskContract v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id", "task_mode", "project_id", "application_id",
+    "required_protocol_version", "required_capabilities", "context_scope",
+    "context_expires_at", "input_refs", "redactions",
+    "risk_level", "acceptance_criteria", "contract_clarity_score",
+    "source_proof",
+    "upload_parameters", "validation_gates",
+    "approval_grant", "execution_host"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_mode": { "const": "guarded_upload" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "application_id": { "type": "string", "minLength": 1 },
+    "required_protocol_version": { "type": "string", "minLength": 1 },
+    "required_capabilities": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string" },
+      "contains": { "const": "youtube_api_upload_capable" }
+    },
+    "context_scope": { "const": "upload_only" },
+    "context_expires_at": { "type": "string", "format": "date-time" },
+    "input_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "redactions": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string" },
+      "contains": { "const": "oauth_token" }
+    },
+    "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+    "acceptance_criteria": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "contract_clarity_score": { "type": "integer", "minimum": 3, "maximum": 5 },
+    "source_proof": { "$ref": "#/$defs/proof" },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "description": "唯一上传键；Runtime 必须在启动上传前检查是否已有同键 receipt，防止重试产生重复视频"
+    },
+    "execution_host": {
+      "type": "string",
+      "enum": ["windows_local_powershell", "mac_durable_runner", "task_scheduler"],
+      "description": "上传必须由本机持久 runner 承载，禁止 agent_tool"
+    },
+    "upload_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_ref", "metadata", "channel_binding"],
+      "properties": {
+        "artifact_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "size_bytes", "duration_seconds"],
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "size_bytes": { "type": "integer", "minimum": 10485760 },
+            "duration_seconds": { "type": "number", "minimum": 1 }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "description", "privacy_status"],
+          "properties": {
+            "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 5000 },
+            "tags": {
+              "type": "array", "maxItems": 30, "uniqueItems": true,
+              "items": { "type": "string", "maxLength": 30 }
+            },
+            "category_id": { "type": "integer", "minimum": 1, "maximum": 44 },
+            "privacy_status": { "enum": ["private", "unlisted", "public"] },
+            "thumbnail_path": { "type": "string" },
+            "language": { "type": "string", "minLength": 2, "maxLength": 5 }
+          }
+        },
+        "channel_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["channel_key", "expected_channel_id", "token_ref"],
+          "properties": {
+            "channel_key": { "type": "string", "minLength": 1 },
+            "expected_channel_id": {
+              "type": "string",
+              "pattern": "^UC[A-Za-z0-9_-]{22}$"
+            },
+            "token_ref": {
+              "type": "string",
+              "pattern": "^secret://[A-Za-z0-9_-]+$",
+              "description": "逻辑引用；Runtime 从本机 manifest 的 secrets 映射解析真实路径"
+            }
+          }
+        },
+        "receipt_config": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "receipt_prefix": { "type": "string" },
+            "receipt_output_dir": { "type": "string" },
+            "emergency_journal_dir": {
+              "type": "string",
+              "description": "当 receipt 写入失败时，emergency journal 保存 video_id 和其他关键信息"
+            }
+          }
+        }
+      }
+    },
+    "validation_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_owner_approval", "require_expected_channel_id_match",
+        "require_token_existence", "require_receipt_on_completion",
+        "block_public_without_explicit_approval", "block_unknown_channel"
+      ],
+      "properties": {
+        "require_owner_approval": { "const": true },
+        "require_expected_channel_id_match": { "const": true },
+        "require_token_existence": { "const": true },
+        "require_receipt_on_completion": { "const": true },
+        "require_metadata_completeness": { "const": true },
+        "block_public_without_explicit_approval": { "const": true },
+        "block_unknown_channel": { "const": true },
+        "max_retries": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "local_quota_gate_enabled": {
+          "type": "boolean",
+          "description": "Project 本地上传预算门禁。YouTube API 无直接 quota 查询，由 Project 维护本地预算计数"
+        },
+        "daily_upload_limit": {
+          "type": "integer", "minimum": 1,
+          "description": "Project 单日上传上限，与 Google quota 互补"
+        }
+      }
+    },
+    "approval_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id", "action", "artifact_sha256", "channel_id",
+        "max_privacy", "granted_by", "granted_at", "expires_at", "source_proof"
+      ],
+      "properties": {
+        "approval_id": { "type": "string", "pattern": "^[a-f0-9-]{36}$" },
+        "action": { "const": "upload" },
+        "artifact_sha256": {
+          "type": "string", "pattern": "^[a-f0-9]{64}$",
+          "description": "批准的成品 SHA256；Contract 的 artifact_ref.sha256 必须与此匹配"
+        },
+        "channel_id": {
+          "type": "string", "pattern": "^UC[A-Za-z0-9_-]{22}$",
+          "description": "批准的频道；必须与 channel_binding.expected_channel_id 匹配"
+        },
+        "max_privacy": {
+          "enum": ["private", "unlisted", "public"],
+          "description": "批准的最高公开级别；Contract 的 privacy_status 不得超过此级别"
+        },
+        "granted_by": { "type": "string", "minLength": 1 },
+        "granted_at": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "revoked": { "type": "boolean", "default": false },
+        "revoked_at": { "type": "string", "format": "date-time" },
+        "conditions": { "type": "string" },
+        "source_proof": { "$ref": "#/$defs/proof" }
+      }
+    }
+  },
+  "$defs": {
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "signed_fields", "value"],
+      "properties": {
+        "method": { "enum": ["hmac", "signature", "hash_chain"] },
+        "key_ref": { "type": "string" },
+        "signed_fields": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "upload_parameters": { "properties": { "metadata": { "properties": { "privacy_status": { "const": "public" } } } } } } },
+      "then": {
+        "properties": {
+          "approval_grant": {
+            "properties": { "max_privacy": { "const": "public" } }
+          }
+        }
+      }
+    }
+  ]
+}

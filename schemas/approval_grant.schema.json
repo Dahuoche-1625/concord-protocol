@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concord-protocol.dev/schemas/approval_grant_v0.1",
+  "title": "ApprovalGrant v0.1",
+  "description": "Owner-signed approval snapshot that Runtime can verify without reading Project facts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "approval_id", "action", "artifact_sha256", "channel_id",
+    "max_privacy", "granted_by", "granted_at", "expires_at", "source_proof"
+  ],
+  "properties": {
+    "approval_id": { "type": "string", "pattern": "^[a-f0-9-]{36}$" },
+    "action": { "const": "upload" },
+    "artifact_sha256": {
+      "type": "string", "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA256 of the approved artifact file; must match upload_parameters.artifact_ref.sha256"
+    },
+    "channel_id": {
+      "type": "string", "pattern": "^UC[A-Za-z0-9_-]{22}$",
+      "description": "Approved YouTube channel; must match channel_binding.expected_channel_id"
+    },
+    "max_privacy": {
+      "enum": ["private", "unlisted", "public"],
+      "description": "Maximum visibility allowed; privacy_status in metadata must be ≤ this"
+    },
+    "granted_by": { "type": "string", "minLength": 1 },
+    "granted_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "revoked": { "type": "boolean", "default": false },
+    "revoked_at": { "type": "string", "format": "date-time" },
+    "conditions": { "type": "string" },
+    "source_proof": {
+      "$ref": "#/$defs/proof",
+      "description": "Signed by Owner over [approval_id, artifact_sha256, channel_id, max_privacy, expires_at]"
+    }
+  },
+  "$defs": {
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "signed_fields", "value"],
+      "properties": {
+        "method": { "enum": ["hmac", "signature", "hash_chain"] },
+        "key_ref": { "type": "string" },
+        "signed_fields": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

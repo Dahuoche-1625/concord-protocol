@@ -22,8 +22,8 @@
     "granted_at": { "type": "string", "format": "date-time" },
     "expires_at": { "type": "string", "format": "date-time" },
     "revoked": { "type": "boolean", "default": false },
-    "revoked_at": { "type": "string", "format": "date-time" },
-    "conditions": { "type": "string" },
+    "revoked_at": { "type": ["string", "null"], "format": "date-time" },
+    "conditions": { "type": ["string", "null"] },
     "source_proof": {
       "$ref": "#/$defs/proof",
       "description": "Signature over all required fields"

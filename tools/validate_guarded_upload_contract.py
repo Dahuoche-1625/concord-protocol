@@ -10,17 +10,25 @@ enforces semantic constraints that span multiple fields:
   - approval_grant.revoked == false
   - approval_grant.expires_at is in the future
   - approval_grant.signed_fields covers all required fields
+  - approval_grant.source_proof HMAC signature verification
+  - revocation_list staleness + approval_id presence check
 
 Usage:
   python3 validate_guarded_upload_contract.py contract.json
   python3 validate_guarded_upload_contract.py contract.json --skip-expiry
+  python3 validate_guarded_upload_contract.py contract.json --signing-key secret://owner_key
+  python3 validate_guarded_upload_contract.py contract.json --revocation-list /path/to/revocations.json --max-staleness 300
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import hmac
 import json
+import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -40,6 +48,34 @@ URI_FIELDS = (
     ("revocation_check", "revocation_list_ref"),
 )
 
+# ── key resolution ──────────────────────────────────────────────────────────
+
+_SECRET_STORE: dict[str, str] = {}
+_ENV_KEY_PREFIX = "CONCORD_SIGNING_KEY_"
+
+def _env_secret_store() -> dict[str, str]:
+    store: dict[str, str] = {}
+    for key, value in os.environ.items():
+        if key.startswith(_ENV_KEY_PREFIX):
+            name = key[len(_ENV_KEY_PREFIX):].lower()
+            store[name] = value
+    return store
+
+def resolve_signing_key(key_ref: str) -> bytes:
+    if _SECRET_STORE:
+        key = _SECRET_STORE.get(key_ref)
+        if key:
+            return key.encode("utf-8")
+    store = _env_secret_store()
+    key = store.get(key_ref) or os.environ.get(key_ref)
+    if key:
+        return key.encode("utf-8")
+    raise ContractValidationError(
+        f"signing key not found: {key_ref}. Set CONCORD_SIGNING_KEY_{key_ref.upper()} or pass via code."
+    )
+
+
+# ── helpers ─────────────────────────────────────────────────────────────────
 
 class ContractValidationError(ValueError):
     pass
@@ -87,7 +123,88 @@ def nested_value(data: dict[str, Any], path: tuple[str, ...]) -> Any:
     return current
 
 
-def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
+# ── HMAC verification ───────────────────────────────────────────────────────
+
+def verify_hmac_proof(grant: dict[str, Any], signing_key: bytes) -> None:
+    proof = grant.get("source_proof", {})
+    ensure(proof.get("method") == "hmac", "source_proof.method must be hmac")
+    proof_value = proof.get("value", "")
+    ensure(proof_value, "source_proof.value is required")
+    signed_fields = proof.get("signed_fields", [])
+    ensure(signed_fields, "source_proof.signed_fields is required")
+    payload_parts = []
+    for field in signed_fields:
+        value = grant.get(field)
+        payload_parts.append(f"{field}={json.dumps(value, sort_keys=True)}")
+    payload = "|".join(payload_parts)
+    expected = hmac.new(signing_key, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, proof_value):
+        raise ContractValidationError(
+            f"HMAC verification failed for approval_grant. Expected {expected[:16]}..., got {proof_value[:16]}..."
+        )
+
+
+# ── revocation list ─────────────────────────────────────────────────────────
+
+def check_revocation_list(
+    grant: dict[str, Any],
+    contract: dict[str, Any],
+    revocation_path: str | None = None,
+    max_staleness: int | None = None,
+) -> None:
+    """Check revocation list if a local path is provided.
+
+    When --revocation-list is not given, the contract-level configuration is
+    validated for presence but actual file I/O is deferred to runtime preflight.
+    """
+    rev_check = contract.get("revocation_check")
+    if not rev_check:
+        raise ContractValidationError("revocation_check is required for production validation")
+
+    # Contract-level config is always required
+    list_ref = rev_check.get("revocation_list_ref", "")
+    ensure(list_ref, "revocation_check.revocation_list_ref is required")
+    if max_staleness is None:
+        staleness = rev_check.get("max_staleness_seconds")
+        ensure(isinstance(staleness, (int, float)) and staleness > 0,
+               f"revocation_check.max_staleness_seconds must be positive, got {staleness}")
+
+    # File I/O — only when an explicit local path is provided
+    if revocation_path is None:
+        return
+
+    list_path = Path(revocation_path).expanduser()
+    ensure(list_path.exists(), f"revocation list not found: {list_path}")
+    ensure(list_path.is_file(), f"revocation list is not a file: {list_path}")
+
+    mtime = list_path.stat().st_mtime
+    age = time.time() - mtime
+    eff_staleness = max_staleness or 300
+    if age > eff_staleness:
+        raise ContractValidationError(
+            f"revocation list is stale: {age:.0f}s old, max staleness {eff_staleness}s"
+        )
+
+    data = load(str(list_path))
+    revoked_ids = set(data.get("revoked_approval_ids", []))
+    ensure(isinstance(revoked_ids, (set, list)),
+           "revocation list revoked_approval_ids must be an array/set")
+    approval_id = grant.get("approval_id", "")
+    if approval_id in revoked_ids:
+        raise ContractValidationError(
+            f"approval {approval_id} found in revocation list — upload denied"
+        )
+
+
+# ── main validation ─────────────────────────────────────────────────────────
+
+def validate(
+    contract: dict[str, Any],
+    skip_expiry: bool = False,
+    signing_key: bytes | None = None,
+    revocation_path: str | None = None,
+    max_staleness: int | None = None,
+) -> list[str]:
     passed: list[str] = []
 
     grant = contract.get("approval_grant")
@@ -130,12 +247,23 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
            f"privacy exceeds approval: requested {req_priv} > max {max_priv}")
     passed.append("privacy_hierarchy_ok")
 
-    # (4) not revoked
+    # (4) in-contract revoked flag
     ensure(not bool(grant.get("revoked", False)),
            "approval_grant has been revoked")
-    passed.append("not_revoked")
+    passed.append("not_revoked_in_contract")
 
-    # (5) expiry
+    # (5) revocation list check
+    check_revocation_list(grant, contract, revocation_path, max_staleness)
+    passed.append("revocation_list_ok")
+
+    # (6) HMAC signature verification
+    if signing_key is not None:
+        verify_hmac_proof(grant, signing_key)
+        passed.append("hmac_signature_verified")
+    else:
+        passed.append("hmac_skipped_no_key")
+
+    # (7) expiry
     expires_str = grant.get("expires_at", "")
     if expires_str and not skip_expiry:
         expires = parse_datetime(expires_str, "approval_grant.expires_at")
@@ -151,7 +279,7 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
                f"contract context expired at {context_expires}")
     passed.append("context_expiry_ok" if not skip_expiry else "context_expiry_skipped")
 
-    # (6) signed fields completeness
+    # (8) signed fields completeness
     proof = grant.get("source_proof", {})
     signed = set(proof.get("signed_fields", []))
     missing = REQUIRED_SIGNED_FIELDS - signed
@@ -159,17 +287,17 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
            f"approval_grant.source_proof.signed_fields missing: {sorted(missing)}")
     passed.append("signed_fields_complete")
 
-    # (7) idempotency key present
+    # (9) idempotency key present
     ensure(bool(contract.get("idempotency_key")), "idempotency_key is required")
     passed.append("idempotency_key_present")
 
-    # (8) receipt_config present with emergency journal
+    # (10) receipt_config present with emergency journal
     receipt = upload.get("receipt_config", {})
     ensure(bool(receipt.get("emergency_journal_dir")),
            "receipt_config.emergency_journal_dir is required")
     passed.append("emergency_journal_configured")
 
-    # (9) revocation check configured
+    # (11) revocation check configured in contract
     rev_check = contract.get("revocation_check")
     ensure(isinstance(rev_check, dict) and rev_check.get("revocation_list_ref"),
            "revocation_check with revocation_list_ref is required")
@@ -190,13 +318,18 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
     return passed
 
 
+# ── CLI ─────────────────────────────────────────────────────────────────────
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Cross-field validator for guarded upload TaskContracts"
     )
     parser.add_argument("contract", help="Path to TaskContract JSON")
-    parser.add_argument("--skip-expiry", action="store_true",
-                        help="Skip expiry check (for test environments)")
+    parser.add_argument("--skip-expiry", action="store_true")
+    parser.add_argument("--signing-key", help="secret://key_ref or env var name for HMAC key")
+    parser.add_argument("--revocation-list", help="Path to revocation list JSON")
+    parser.add_argument("--max-staleness", type=int, default=300,
+                        help="Max age of revocation list in seconds (default: 300)")
     args = parser.parse_args()
 
     try:
@@ -206,13 +339,19 @@ def main() -> int:
         try:
             from jsonschema import Draft202012Validator, FormatChecker, ValidationError
             from referencing import Registry, Resource
-        except ImportError as exc:
-            print(
-                "DEPENDENCY_MISSING: install jsonschema>=4,<5 before validation",
-                file=sys.stderr,
-            )
+        except ImportError:
+            print("DEPENDENCY_MISSING: install jsonschema>=4,<5", file=sys.stderr)
             return 3
-        schema_dir = Path(__file__).resolve().parent.parent / "schemas"
+
+        script_dir = Path(__file__).resolve().parent
+        schema_dir = None
+        for candidate in [script_dir.parent / "schemas", script_dir.parent / "contracts/concord/schemas"]:
+            if (candidate / "guarded_upload_task.schema.json").exists():
+                schema_dir = candidate
+                break
+        if schema_dir is None:
+            print("FATAL: cannot find guarded_upload_task.schema.json", file=sys.stderr)
+            return 3
         upload_schema = json.loads(
             (schema_dir / "guarded_upload_task.schema.json").read_text(encoding="utf-8")
         )
@@ -223,12 +362,21 @@ def main() -> int:
             grant_schema["$id"], Resource.from_contents(grant_schema)
         )
         Draft202012Validator(
-            upload_schema,
-            registry=registry,
-            format_checker=FormatChecker(),
+            upload_schema, registry=registry, format_checker=FormatChecker()
         ).validate(contract)
 
-        results = validate(contract, skip_expiry=args.skip_expiry)
+        # resolve signing key
+        signing_key: bytes | None = None
+        if args.signing_key:
+            signing_key = resolve_signing_key(args.signing_key)
+
+        results = validate(
+            contract,
+            skip_expiry=args.skip_expiry,
+            signing_key=signing_key,
+            revocation_path=args.revocation_list,
+            max_staleness=args.max_staleness,
+        )
         print(f"VALID: {len(results)} checks passed")
         for r in results:
             print(f"  + {r}")

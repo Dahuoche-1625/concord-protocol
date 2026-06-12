@@ -53,6 +53,12 @@ URI_FIELDS = (
 _SECRET_STORE: dict[str, str] = {}
 _ENV_KEY_PREFIX = "CONCORD_SIGNING_KEY_"
 
+
+def secret_name(key_ref: str) -> str:
+    if key_ref.startswith("secret://"):
+        return key_ref.removeprefix("secret://")
+    return key_ref
+
 def _env_secret_store() -> dict[str, str]:
     store: dict[str, str] = {}
     for key, value in os.environ.items():
@@ -62,16 +68,18 @@ def _env_secret_store() -> dict[str, str]:
     return store
 
 def resolve_signing_key(key_ref: str) -> bytes:
+    name = secret_name(key_ref)
     if _SECRET_STORE:
-        key = _SECRET_STORE.get(key_ref)
+        key = _SECRET_STORE.get(key_ref) or _SECRET_STORE.get(name)
         if key:
             return key.encode("utf-8")
     store = _env_secret_store()
-    key = store.get(key_ref) or os.environ.get(key_ref)
+    key = store.get(name.lower()) or os.environ.get(key_ref)
     if key:
         return key.encode("utf-8")
+    env_name = f"{_ENV_KEY_PREFIX}{name.upper()}"
     raise ContractValidationError(
-        f"signing key not found: {key_ref}. Set CONCORD_SIGNING_KEY_{key_ref.upper()} or pass via code."
+        f"signing key not found: {key_ref}. Set {env_name} or pass via code."
     )
 
 
@@ -330,6 +338,11 @@ def main() -> int:
     parser.add_argument("--revocation-list", help="Path to revocation list JSON")
     parser.add_argument("--max-staleness", type=int, default=300,
                         help="Max age of revocation list in seconds (default: 300)")
+    parser.add_argument(
+        "--contract-only",
+        action="store_true",
+        help="Validate schema/cross-fields only; forbidden for production execution",
+    )
     args = parser.parse_args()
 
     try:
@@ -364,6 +377,10 @@ def main() -> int:
         Draft202012Validator(
             upload_schema, registry=registry, format_checker=FormatChecker()
         ).validate(contract)
+
+        if not args.contract_only:
+            ensure(bool(args.signing_key), "--signing-key is required for production validation")
+            ensure(bool(args.revocation_list), "--revocation-list is required for production validation")
 
         # resolve signing key
         signing_key: bytes | None = None

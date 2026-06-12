@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import hmac
 import importlib.util
 import json
+import os
 import sys
+import subprocess
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -123,6 +128,17 @@ def valid_contract() -> dict:
     }
 
 
+def sign_contract(contract: dict, key: bytes) -> None:
+    grant = contract["approval_grant"]
+    fields = grant["source_proof"]["signed_fields"]
+    payload = "|".join(
+        f"{field}={json.dumps(grant.get(field), sort_keys=True)}" for field in fields
+    )
+    grant["source_proof"]["value"] = hmac.new(
+        key, payload.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
 class GuardedUploadContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -211,6 +227,52 @@ class GuardedUploadContractTests(unittest.TestCase):
         del contract["revocation_check"]
         with self.assertRaises(ValidationError):
             self.structural.validate(contract)
+
+    def test_cli_is_fail_closed_without_runtime_proofs(self) -> None:
+        contract = valid_contract()
+        with tempfile.TemporaryDirectory() as directory:
+            contract_path = Path(directory) / "contract.json"
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "tools/validate_guarded_upload_contract.py"), str(contract_path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("--signing-key is required", result.stderr)
+
+    def test_cli_accepts_hmac_and_fresh_revocation_list(self) -> None:
+        key = b"test-owner-key"
+        contract = valid_contract()
+        sign_contract(contract, key)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            contract_path = root / "contract.json"
+            revocation_path = root / "revocations.json"
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+            revocation_path.write_text(
+                json.dumps({"revoked_approval_ids": []}), encoding="utf-8"
+            )
+            env = dict(os.environ)
+            env["CONCORD_SIGNING_KEY_OWNER_APPROVAL_HMAC"] = key.decode()
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "tools/validate_guarded_upload_contract.py"),
+                    str(contract_path),
+                    "--signing-key",
+                    "secret://owner_approval_hmac",
+                    "--revocation-list",
+                    str(revocation_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("hmac_signature_verified", result.stdout)
 
 
 if __name__ == "__main__":

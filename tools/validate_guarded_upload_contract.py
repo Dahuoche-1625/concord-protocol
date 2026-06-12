@@ -24,12 +24,21 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 PRIVACY_HIERARCHY = {"private": 1, "unlisted": 2, "public": 3}
 REQUIRED_SIGNED_FIELDS = frozenset([
     "approval_id", "action", "artifact_sha256", "channel_id",
     "max_privacy", "expires_at", "revoked",
 ])
+URI_FIELDS = (
+    ("input_refs",),
+    ("upload_parameters", "artifact_ref", "path"),
+    ("upload_parameters", "metadata", "thumbnail_path"),
+    ("upload_parameters", "receipt_config", "receipt_output_dir"),
+    ("upload_parameters", "receipt_config", "emergency_journal_dir"),
+    ("revocation_check", "revocation_list_ref"),
+)
 
 
 class ContractValidationError(ValueError):
@@ -51,6 +60,33 @@ def ensure(value: Any, message: str) -> None:
         raise ContractValidationError(message)
 
 
+def parse_datetime(value: str, field: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ContractValidationError(f"invalid {field}: {value}") from exc
+    ensure(parsed.tzinfo is not None, f"{field} must include a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def validate_scoped_uri(value: str, field: str) -> None:
+    parsed = urlsplit(value)
+    ensure(parsed.scheme in {"manifest", "external"}, f"{field} uses unsupported scheme")
+    ensure(bool(parsed.netloc or parsed.path.strip("/")), f"{field} must identify a resource")
+    segments = [segment for segment in parsed.path.split("/") if segment]
+    ensure(".." not in segments and "." not in segments, f"{field} contains path traversal")
+    ensure(not parsed.query and not parsed.fragment, f"{field} must not contain query or fragment")
+
+
+def nested_value(data: dict[str, Any], path: tuple[str, ...]) -> Any:
+    current: Any = data
+    for part in path:
+        if not isinstance(current, dict) or part not in current:
+            return None
+        current = current[part]
+    return current
+
+
 def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
     passed: list[str] = []
 
@@ -65,7 +101,7 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
     binding = upload.get("channel_binding")
     ensure(isinstance(binding, dict), "upload_parameters.channel_binding must be an object")
     gates = contract.get("validation_gates")
-    enable(instance(gate, dict), "validation_gates must be an object")
+    ensure(isinstance(gates, dict), "validation_gates must be an object")
 
     # (1) artifact SHA256 match
     approval_sha = grant.get("artifact_sha256")
@@ -102,14 +138,18 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
     # (5) expiry
     expires_str = grant.get("expires_at", "")
     if expires_str and not skip_expiry:
-        try:
-            expires = datetime.fromisoformat(expires_str)
-            now = datetime.now(timezone.utc)
-            ensure(expires > now,
-                   f"approval expired at {expires_str} (now: {now.isoformat()})")
-        except ValueError as exc:
-            raise ContractValidationError(f"invalid expires_at: {expires_str}") from exc
+        expires = parse_datetime(expires_str, "approval_grant.expires_at")
+        now = datetime.now(timezone.utc)
+        ensure(expires > now,
+               f"approval expired at {expires_str} (now: {now.isoformat()})")
     passed.append("expiry_ok" if not skip_expiry else "expiry_skipped")
+
+    context_expires = contract.get("context_expires_at", "")
+    if context_expires and not skip_expiry:
+        context_deadline = parse_datetime(context_expires, "context_expires_at")
+        ensure(context_deadline > datetime.now(timezone.utc),
+               f"contract context expired at {context_expires}")
+    passed.append("context_expiry_ok" if not skip_expiry else "context_expiry_skipped")
 
     # (6) signed fields completeness
     proof = grant.get("source_proof", {})
@@ -135,6 +175,18 @@ def validate(contract: dict[str, Any], skip_expiry: bool = False) -> list[str]:
            "revocation_check with revocation_list_ref is required")
     passed.append("revocation_check_configured")
 
+    for path in URI_FIELDS:
+        value = nested_value(contract, path)
+        if value is None:
+            continue
+        field = ".".join(path)
+        if isinstance(value, list):
+            for index, item in enumerate(value):
+                validate_scoped_uri(item, f"{field}[{index}]")
+        else:
+            validate_scoped_uri(value, field)
+    passed.append("scoped_uris_valid")
+
     return passed
 
 
@@ -151,7 +203,15 @@ def main() -> int:
         contract = load(args.contract)
 
         # structural schema validation
-        import jsonschema
+        try:
+            from jsonschema import Draft202012Validator, FormatChecker, ValidationError
+            from referencing import Registry, Resource
+        except ImportError as exc:
+            print(
+                "DEPENDENCY_MISSING: install jsonschema>=4,<5 before validation",
+                file=sys.stderr,
+            )
+            return 3
         schema_dir = Path(__file__).resolve().parent.parent / "schemas"
         upload_schema = json.loads(
             (schema_dir / "guarded_upload_task.schema.json").read_text(encoding="utf-8")
@@ -159,12 +219,14 @@ def main() -> int:
         grant_schema = json.loads(
             (schema_dir / "approval_grant.schema.json").read_text(encoding="utf-8")
         )
-        store = {
-            upload_schema["$id"]: upload_schema,
-            grant_schema["$id"]: grant_schema,
-        }
-        resolver = jsonschema.Draft202012Validator(upload_schema).resolver
-        jsonschema.Draft202012Validator(upload_schema, resolver=resolver).validate(contract)
+        registry = Registry().with_resource(
+            grant_schema["$id"], Resource.from_contents(grant_schema)
+        )
+        Draft202012Validator(
+            upload_schema,
+            registry=registry,
+            format_checker=FormatChecker(),
+        ).validate(contract)
 
         results = validate(contract, skip_expiry=args.skip_expiry)
         print(f"VALID: {len(results)} checks passed")
@@ -174,7 +236,7 @@ def main() -> int:
     except ContractValidationError as exc:
         print(f"CONTRACT_INVALID: {exc}", file=sys.stderr)
         return 1
-    except jsonschema.ValidationError as exc:
+    except ValidationError as exc:
         location = ".".join(str(i) for i in exc.absolute_path) or "root"
         print(f"SCHEMA_INVALID at {location}: {exc.message}", file=sys.stderr)
         return 2

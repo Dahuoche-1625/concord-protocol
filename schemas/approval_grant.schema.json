@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "approval_grant.schema.json",
+  "$id": "https://concord-protocol.dev/schemas/approval_grant_v0.1",
   "title": "ApprovalGrant v0.1",
   "description": "Owner-signed snapshot. Runtime verifies without reading Project facts.",
   "type": "object",
@@ -33,10 +33,10 @@
     "proof": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method", "signed_fields", "value"],
+      "required": ["method", "key_ref", "signed_fields", "value"],
       "properties": {
-        "method": { "enum": ["hmac", "signature", "hash_chain"] },
-        "key_ref": { "type": "string" },
+        "method": { "enum": ["hmac", "signature"] },
+        "key_ref": { "type": "string", "pattern": "^secret://[A-Za-z0-9_-]+$" },
         "signed_fields": {
           "type": "array",
           "minItems": 7,

@@ -59,6 +59,16 @@ Read in this order:
 9. [`examples/minimal_project/`](examples/minimal_project/) — A minimal two-agent project showing the protocol in action.
 10. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — Draft bridge object templates for the v0.2 pilot.
 11. [`examples/protocol_lock.example.json`](examples/protocol_lock.example.json) — Non-production protocol lock example.
+12. [`protocol/guarded-upload-task-contract-v0.2.md`](protocol/guarded-upload-task-contract-v0.2.md) — Guarded upload authorization and execution contract.
+13. [`protocol/upload-negative-test-matrix-v0.2.md`](protocol/upload-negative-test-matrix-v0.2.md) — Required rejection and smoke-test matrix.
+
+Validate a guarded upload contract with:
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 tools/validate_guarded_upload_contract.py /path/to/task_contract.json
+python3 -m unittest discover -s tests -v
+```
 
 ## Version
 

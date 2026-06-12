@@ -4,6 +4,7 @@
 > Schema: `schemas/guarded_upload_task.schema.json`
 > Companion: `schemas/approval_grant.schema.json`
 > 负向测试: `protocol/upload-negative-test-matrix-v0.2.md`
+> 语义验证器: `tools/validate_guarded_upload_contract.py`
 
 ## 1. 设计原则
 
@@ -29,6 +30,8 @@
 | `contract_clarity_score`, `source_proof` | `idempotency_key` (去重) |
 
 **关键约束**：所有嵌套对象 `additionalProperties: false`，禁止 Contract 携带 `oauth_token`、`refresh_token` 等字段。
+
+结构校验之后必须执行语义验证器。Schema 负责字段形状，验证器负责跨字段绑定、有效期、URI 防穿越和审批状态。Runtime 仍需负责解析本地 manifest、校验实际文件哈希、验证 HMAC/签名值以及读取撤销列表；这些环境检查不能由 Schema 替代。
 
 ## 3. ApprovalGrant 工作流
 

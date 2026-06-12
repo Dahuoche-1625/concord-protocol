@@ -32,6 +32,16 @@
 9. [`examples/minimal_project/`](examples/minimal_project/) — 一个最小两 Agent 示例项目。
 10. [`examples/bridge_loop_pilot/`](examples/bridge_loop_pilot/) — v0.2 试点 Bridge Object 模板。
 11. [`examples/protocol_lock.example.json`](examples/protocol_lock.example.json) — 不可用于生产的协议锁示例。
+12. [`protocol/guarded-upload-task-contract-v0.2.md`](protocol/guarded-upload-task-contract-v0.2.md) — 受控上传授权与执行合同。
+13. [`protocol/upload-negative-test-matrix-v0.2.md`](protocol/upload-negative-test-matrix-v0.2.md) — 必须通过的拒绝测试与 smoke test 矩阵。
+
+验证 Guarded Upload 合同：
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 tools/validate_guarded_upload_contract.py /path/to/task_contract.json
+python3 -m unittest discover -s tests -v
+```
 
 ## 核心模型
 

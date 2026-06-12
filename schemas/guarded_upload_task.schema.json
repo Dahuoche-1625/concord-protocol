@@ -12,7 +12,7 @@
     "source_proof",
     "upload_parameters", "validation_gates",
     "approval_grant", "execution_host",
-    "idempotency_key", "receipt_config"
+    "idempotency_key", "revocation_check"
   ],
   "properties": {
     "task_id": { "type": "string", "minLength": 1 },
@@ -55,7 +55,7 @@
     "upload_parameters": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["artifact_ref", "metadata", "channel_binding"],
+      "required": ["artifact_ref", "metadata", "channel_binding", "receipt_config"],
       "properties": {
         "artifact_ref": {
           "type": "object",
@@ -131,6 +131,7 @@
       "required": [
         "require_owner_approval", "require_expected_channel_id_match",
         "require_token_existence", "require_receipt_on_completion",
+        "require_metadata_completeness",
         "block_public_without_explicit_approval", "block_unknown_channel",
         "max_retries", "local_quota_gate_enabled", "daily_upload_limit"
       ],
@@ -147,7 +148,9 @@
         "daily_upload_limit": { "type": "integer", "minimum": 1 }
       }
     },
-    "approval_grant": { "$ref": "approval_grant.schema.json" },
+    "approval_grant": {
+      "$ref": "https://concord-protocol.dev/schemas/approval_grant_v0.1"
+    },
     "revocation_check": {
       "type": "object",
       "additionalProperties": false,

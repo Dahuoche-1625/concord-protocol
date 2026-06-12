@@ -68,9 +68,9 @@
 
 ## 验收标准
 
-- 17 项 P0 全部 PASS
-- 3 项 P1 全部 PASS 或记录为已知限制
-- 2 项 P2 全部 PASS
+- 19 项 P0 全部 PASS
+- 5 项 P1 全部 PASS 或记录为已知限制
+- 1 项 P2 PASS
 - Smoke test 产生 `video_id`，YouTube Studio 可确认
 - 所有 Schema 验证由 `jsonschema.Draft202012Validator` 执行
 - `guarded_upload_task.schema.json` 纳入 `protocol_lock.json`

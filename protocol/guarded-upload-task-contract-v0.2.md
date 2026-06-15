@@ -1,6 +1,6 @@
 # Guarded Upload TaskContract v0.2
 
-> Status: draft · Wave 7 pre-design
+> Status: pilot-validated alpha · executable schema and validator available
 > Schema: `schemas/guarded_upload_task.schema.json`
 > Companion: `schemas/approval_grant.schema.json`
 > 负向测试: `protocol/upload-negative-test-matrix-v0.2.md`

@@ -59,8 +59,10 @@ Projects declare their adopted protocol version in `framework_manifest.json`. Pr
 
 ### Current version
 
-- **v0.1-alpha**: Security kernel. 6 objects. `verify_only` mode. Discussion draft.
-- **v0.2** (planned): Role binding, context policies, enforced sandbox, review gates.
+- **v0.1-alpha**: Security-kernel and domain-separation foundation. `verify_only` mode.
+- **v0.2.0-alpha**: Pilot-validated Bridge Loop, contract split, `guarded_verify`, approval evidence, HMAC verification, revocation, protocol locks, and rejection tests.
+
+`v0.2.0-alpha` does not claim OS-level enforcement. An implementation may add a sandbox or container, but the protocol only names `enforced` when the runtime can prove that prevention capability exists.
 
 ### How to participate
 

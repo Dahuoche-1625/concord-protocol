@@ -1,8 +1,17 @@
-# Security Model — Agent Protocol v0.1-alpha
+# Security Model — Concord Protocol v0.2.0-alpha
 
-> **IMPORTANT**: V0.1 is `verify_only`, NOT a sandbox. Read this before deploying.
+> **IMPORTANT**: Concord is a contract and verification layer, not an OS sandbox. Read this before deploying.
 
-## What V0.1 protects against
+## Release profiles
+
+| Profile | Purpose | Enforcement level |
+|---|---|---|
+| v0.1 security kernel | Workspace-boundary detection | `verify_only` |
+| v0.2 Bridge contracts | Cross-domain authorization, evidence, revocation, and result validation | `guarded_verify` |
+
+Neither profile intercepts every filesystem or network operation. Runtimes must not advertise `enforced` unless an independent sandbox, container, OS account, or equivalent prevention mechanism is active and verified.
+
+## What the protocol protects against
 
 | Threat | Protection | Method |
 |--------|-----------|--------|
@@ -13,16 +22,21 @@
 | Serial dependency chain broken | ✅ Gated | `depends_on` checked pre-execution |
 | Agent impersonates another agent | ⚠️ Partial | `file_bus_v1` trusts filesystem ownership; signature/token mode deferred |
 | Result silently altered after guard check | ⚠️ Partial | `atomic_write` required; post-check verifies output_refs exist |
+| Upload contract altered after approval | ✅ Gated | ApprovalGrant binds artifact hash, channel, privacy ceiling, and expiration |
+| Revoked approval used by a Runtime | ✅ Gated | Fresh revocation-list check required before execution |
+| Approval JSON forged without proof | ✅ Gated | HMAC or signature proof validation |
+| Retry creates duplicate external action | ✅ Gated | `idempotency_key` and prior-receipt check |
 
-## What V0.1 does NOT protect against
+## What the protocol does NOT protect against
 
 | Threat | Why | Planned fix |
 |--------|-----|------------|
-| **Agent reads forbidden files** (`.env`, credentials) | `read_disclosure_only: true` — guard only checks `source_refs`, cannot intercept OS-level reads | v0.2 enforced sandbox |
-| **Agent writes out-of-scope files** | `verify_only` — detects but doesn't prevent the write. Result is invalidated, but the file exists. | v0.2 enforced sandbox |
-| **Agent tampers with agent identities** (in `file_bus_v1` mode) | Identity stored in filesystem — no cryptographic verification | v0.2 signature/token identity |
-| **Two agents race on the same file** | No distributed lock | Application-level lock file, or v0.2 task-level lock |
-| **Guard itself is compromised** | Guard is a script in the same filesystem | v0.2 guard hash verification |
+| **Agent reads forbidden files** (`.env`, credentials) | Contract disclosure rules cannot intercept OS-level reads | Add an independently verified sandbox or restricted OS identity |
+| **Agent writes out-of-scope files** | `guarded_verify` can invalidate and clean known changes, but prevention depends on the host | Add filesystem permissions, sandboxing, or containers |
+| **Agent tampers with local identities** | File-backed identity is only as strong as local filesystem ownership | Use signed identities and protected key storage |
+| **Two nodes race outside the lease store** | The protocol defines lease semantics, not a distributed consensus service | Use atomic storage or a transactional coordinator |
+| **Guard or validator is compromised** | A validator in the same trust domain can be replaced | Verify protocol locks and protect the Runtime release |
+| **Secrets are exposed before receipt filtering** | Secret stripping protects persisted outputs, not a compromised process | Keep secrets outside contracts and isolate the execution host |
 
 ## Security boundaries
 
@@ -65,13 +79,13 @@ Violations are recorded with: `task_id`, `agent_id`, `file_delta`, `violations[]
 
 ## Reporting vulnerabilities
 
-This is an alpha protocol. If you find a security vulnerability in the design or reference implementation, please open an issue with the `security` label. Do NOT report vulnerabilities from your own implementation or deployment.
+This is an alpha protocol. For design-level issues, follow the private reporting instructions in the repository Security tab when available. Do not place tokens, credentials, private task contracts, or production artifacts in a public issue.
 
 ## Responsible use
 
-Do NOT deploy V0.1 in production environments where:
+Do not treat Concord as the only control in environments where:
 - Agents handle sensitive data (credentials, PII, financial data)
 - Write boundaries are safety-critical
 - Agent identity compromise would cause real-world harm
 
-V0.1 is a **detection layer**, not a prevention layer. Use it as a guardrail, not a gate.
+Concord provides executable gates for contract acceptance and result validity. It does not replace host hardening, secret management, network policy, or platform-native authorization.

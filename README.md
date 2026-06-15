@@ -1,10 +1,10 @@
-# Concord Protocol v0.1-alpha
+# Concord Protocol v0.2.0-alpha
 
 [中文版](README.zh-CN.md)
 
-> A minimal executable security kernel for file-driven multi-agent collaboration.
+> An executable governance and contract layer for file-driven multi-agent collaboration.
 
-**This is an early draft (v0.1-alpha), not a mature standard.** It answers three questions for every agent in a shared workspace:
+**This is a pilot-validated alpha, not a mature standard or an OS sandbox.** It answers four questions for every agent system:
 
 1. **Who are you?** — `AgentIdentity`
 2. **What can you do?** — `CapabilityRecord` + `AgentBoundary`
@@ -13,13 +13,41 @@
 
 ## What this is
 
-A protocol for multiple AI agents to collaborate in shared or distributed workspaces without a central super-agent. Each agent declares its identity, capabilities, and write boundaries. A `file_bus_guard` verifies before and after each task that the agent didn't write outside its allowed scope. The domain separation model keeps project facts and runtime execution state isolated, connected only through bridge objects such as `TaskContract`, `TaskLease`, and `ExecutionReceipt`.
+A protocol for multiple AI agents to collaborate in shared or distributed workspaces without sharing unrestricted project context or runtime authority. Projects express intent and approval through contracts. Runtime workers claim bounded leases, execute with minimum context, and return verifiable receipts. Domain separation keeps project facts and runtime state isolated, connected through Bridge Objects.
+
+```mermaid
+flowchart LR
+    P["Project Domain<br/>facts · policy · approval"]
+    B["Bridge Objects<br/>Contract · Dispatch · Lease · Receipt · Review"]
+    R["Runtime Mesh<br/>capabilities · execution · guard"]
+    P --> B --> R
+    R --> B --> P
+```
+
+Concord is complementary to connectivity and orchestration standards:
+
+- MCP connects agents to tools and context.
+- A2A connects agents to other agents.
+- Agent frameworks provide orchestration, persistence, and execution runtimes.
+- Concord defines business-facing boundaries, cross-domain contracts, authorization evidence, revocation, and audit receipts.
 
 ## What this is NOT
 
-- ❌ A sandbox or container — V0.1 is `verify_only`. It detects and blocks result acceptance, but does **not** prevent file writes or reads at the OS level.
-- ❌ A general-purpose agent framework — V0.1 is a **security kernel only**. Role binding, context policies, skill management, review gates, and approval workflows are deferred to v0.2+.
+- ❌ A sandbox or container — `guarded_verify` validates and rejects invalid results, but does **not** intercept every OS-level read or write.
+- ❌ A general-purpose agent framework — Concord does not provide model hosting, queues, scheduling, memory, or tool transport.
 - ❌ A complete multi-agent solution — You bring your own agents, skills, task queues, and business logic. This protocol adds the security layer.
+
+## Current release
+
+`v0.2.0-alpha` adds the pilot-validated Bridge Loop and executable Guarded Upload contracts:
+
+- `TaskContract -> TaskDispatch -> TaskLease -> ExecutionReceipt -> ReviewResult`
+- Project / Runtime domain separation and minimum context disclosure
+- `guarded_verify`, external artifact references, secret stripping, and protocol locks
+- Approval grants bound to artifact hash, channel, privacy ceiling, and expiration
+- HMAC proof validation, revocation-list checks, idempotency, and negative tests
+
+The original v0.1 security kernel remains available as the conceptual foundation. Full OS-level prevention remains outside this release.
 
 ## Structure
 
@@ -44,9 +72,24 @@ A protocol for multiple AI agents to collaborate in shared or distributed worksp
     └── minimal_project/             (minimal working example)
 ```
 
-## Quick start
+## Five-minute quick start
 
-Read in this order:
+Install the validator and run the test suite:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 -m unittest discover -s tests -v
+```
+
+Validate a Guarded Upload contract:
+
+```bash
+python3 tools/validate_guarded_upload_contract.py /path/to/task_contract.json
+```
+
+Then read in this order:
 
 1. [`protocol/reusable-multi-agent-protocol-v0.1.md`](protocol/reusable-multi-agent-protocol-v0.1.md) — Four-layer model, capability-driven roles, committee governance.
 2. [`framework/framework-security-kernel-v0.1.md`](framework/framework-security-kernel-v0.1.md) — The 6 core objects + 2 execution mechanisms you actually implement.
@@ -62,18 +105,14 @@ Read in this order:
 12. [`protocol/guarded-upload-task-contract-v0.2.md`](protocol/guarded-upload-task-contract-v0.2.md) — Guarded upload authorization and execution contract.
 13. [`protocol/upload-negative-test-matrix-v0.2.md`](protocol/upload-negative-test-matrix-v0.2.md) — Required rejection and smoke-test matrix.
 
-Validate a guarded upload contract with:
-
-```bash
-python3 -m pip install -r requirements.txt
-python3 tools/validate_guarded_upload_contract.py /path/to/task_contract.json
-python3 -m unittest discover -s tests -v
-```
+Blacklight Runtime is the production reference implementation used to validate these contracts. It is maintained separately so protocol definitions, deployable execution code, and project facts can evolve independently.
 
 ## Version
 
-- **v0.1-alpha** — Security kernel + domain separation draft. `verify_only` mode. 6 security objects + RuntimeGuard + AuditLog + Bridge Object model.
-- **v0.2** (pilot-validated draft) — Main protocol model consolidation, Task schema split, role binding, context policies, `guarded_verify`, review gates, and transport adapter schemas. Full OS-level `enforced` mode remains deferred.
+- **v0.1-alpha** — Security kernel and domain-separation foundation. `verify_only` mode.
+- **v0.2.0-alpha** — Pilot-validated Bridge Loop, contract split, `guarded_verify`, approval evidence, HMAC verification, revocation, protocol locks, and executable rejection tests.
+
+See [CHANGELOG.md](CHANGELOG.md) for release details and [CONTRIBUTING.md](CONTRIBUTING.md) for protocol proposals.
 
 ## License
 
